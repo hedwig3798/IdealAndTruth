@@ -1,6 +1,9 @@
 #pragma once
 #include "RenameType.h"
 #include "IdealError.h"
+#include "DXTK/SimpleMath.h"
+
+using namespace DirectX::SimpleMath;
 
 class IRenderer
 {

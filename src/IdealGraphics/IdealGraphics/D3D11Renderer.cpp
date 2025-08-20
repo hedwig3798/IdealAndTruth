@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "D3D11Renderer.h"
 
+#define MEM_SIZE 1'048'576'000 * 4 //4GB
+
 D3D11Renderer::D3D11Renderer()
 	: m_hwnd()
 	, m_device{}
@@ -10,28 +12,19 @@ D3D11Renderer::D3D11Renderer()
 	, m_depthStancilBuffer{}
 	, m_rasterizerState{}
 	, m_featureLevel{}
+	, m_allocators{}
 {
 
 }
 
 D3D11Renderer::~D3D11Renderer()
 {
-
+	m_allocators.clear();
 }
 
 IE D3D11Renderer::CreateD3D11DeviceContext(const InitializeState::Device& _device)
 {
 	HRESULT hr = S_OK;
-
-	if (nullptr == m_deviceContext
-		|| nullptr == m_deviceContext.Get()
-		|| nullptr == m_deviceContext.GetAddressOf()
-		|| nullptr == m_device
-		|| nullptr == m_device.Get()
-		|| nullptr == m_device.GetAddressOf())
-	{
-		return IE::NULL_POINTER_ACCESS;
-	}
 
 	// D3D11 디바이스 생성
 	hr |= D3D11CreateDevice(
@@ -49,7 +42,7 @@ IE D3D11Renderer::CreateD3D11DeviceContext(const InitializeState::Device& _devic
 
 	if (S_OK != hr)
 	{
-		return IE::HRESULT_ERROR;
+		return IE::CREATE_D3D_COMPONENT_FAIL;
 	}
 
 	return IE::I_OK;
@@ -218,7 +211,6 @@ IE D3D11Renderer::CreateDepthStencilBufferAndView(const InitializeState::DepthSt
 	}
 
 	return IE::I_OK;
-
 }
 
 IE D3D11Renderer::CreateViewPort()
@@ -241,6 +233,8 @@ IE D3D11Renderer::CreateViewPort()
 	vp.TopLeftY = 0;
 
 	m_deviceContext->RSSetViewports(1, &vp);
+
+	return IE::I_OK;
 }
 
 IE D3D11Renderer::CreateRasterizerState(const InitializeState::RaseterizerState& _rasterizer)
@@ -303,14 +297,6 @@ IE D3D11Renderer::ClearScreen()
 IE D3D11Renderer::Initialize(const InitializeState& _initalizeState)
 {
 	HRESULT hr = S_OK;
-
-	// 예외처리
-	if (nullptr == m_deviceContext
-		|| nullptr == m_finalRenderTargetView
-		|| nullptr == m_depthStancilView)
-	{
-		return IE::NULL_POINTER_ACCESS;
-	}
 
 	CreateD3D11DeviceContext(_initalizeState.m_device);
 	CreateSwapChain(_initalizeState.m_swapChain);

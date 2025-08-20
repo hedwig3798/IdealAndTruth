@@ -10,6 +10,15 @@
     <Filter Include="Renderer">
       <UniqueIdentifier>{92b96e14-591c-457d-bd23-10f997f26535}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Vertex">
+      <UniqueIdentifier>{e7c8fdb1-59b3-4550-9a71-10ef7884be64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{357b305f-9b53-4636-b847-5c3a87b4707b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Allocator">
+      <UniqueIdentifier>{25fbbf43-6b31-4f53-9ce2-1926fb340d60}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -24,9 +33,17 @@
     <ClInclude Include="D3D11Renderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="RenameType.h" />
     <ClInclude Include="IdealError.h">
       <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="RenameType.h">
+      <Filter>Allocator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

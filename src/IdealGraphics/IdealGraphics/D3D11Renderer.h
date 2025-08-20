@@ -4,6 +4,9 @@
 #include <wrl\client.h>
 #include "IRenderer.h"
 #include "windows.h"
+#include "CustomAllocator/IAllocator.h"
+#include <map>
+#include <string>
 
 using Microsoft::WRL::ComPtr;
 
@@ -23,6 +26,11 @@ private:
 
 	D3D_FEATURE_LEVEL m_featureLevel;
 
+	Matrix m_world;
+	Matrix m_view;
+	Matrix m_projection;
+
+	std::map<size_t, IAllocator*>m_allocators;
 
 public:
 	D3D11Renderer();
