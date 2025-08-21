@@ -9,7 +9,6 @@
 #include "RenameType.h"
 #include "IdealError.h"
 #include "DXTK/SimpleMath.h"
-#include <d3d11.h>
 
 using namespace DirectX::SimpleMath;
 
