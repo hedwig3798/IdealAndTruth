@@ -294,9 +294,11 @@ IE D3D11Renderer::ClearScreen()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::Initialize(const InitializeState& _initalizeState)
+IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 {
 	HRESULT hr = S_OK;
+
+	m_hwnd = _hwnd;
 
 	CreateD3D11DeviceContext(_initalizeState.m_device);
 	CreateSwapChain(_initalizeState.m_swapChain);
@@ -368,6 +370,10 @@ IE D3D11Renderer::SetTexture(int _materialID, int _slot /*= 0*/)
 
 IE D3D11Renderer::Draw()
 {
+	if (nullptr == m_swapChain)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
 	m_swapChain->Present(0, 0);
 	return IE::I_OK;
 }

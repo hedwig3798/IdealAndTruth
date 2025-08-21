@@ -35,8 +35,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 	{
 		return;
 	}
-	IRenderer* m_renderer = ((IRenderer * (*)())GetProcAddress(m_rendererDll, "CreateD3D11Renderer"))();
-	m_renderer->Initialize(m_rendererState);
+	m_renderer = ((IRenderer * (*)())GetProcAddress(m_rendererDll, "CreateD3D11Renderer"))();
+	m_renderer->Initialize(m_rendererState, m_hwnd);
 
 	RECT windowSize;
 	GetWindowRect(m_hwnd, &windowSize);
@@ -78,6 +78,7 @@ void DemoProcess::Update()
 
 void DemoProcess::Render()
 {
+	m_renderer->Draw();
 	// this->graphicsEngine->begineDraw();
 	// this->object->Render(graphicsEngine);
 	// 

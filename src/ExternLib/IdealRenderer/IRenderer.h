@@ -9,6 +9,7 @@
 #include "RenameType.h"
 #include "IdealError.h"
 #include "DXTK/SimpleMath.h"
+#include <d3d11.h>
 
 using namespace DirectX::SimpleMath;
 
@@ -88,7 +89,7 @@ public:
 	/// 렌더러 초기화
 	/// </summary>
 	/// <returns>성공 여부</returns>
-	virtual IE Initialize(const InitializeState& _initalizeState) = 0;
+	virtual IE Initialize(const InitializeState& _initalizeState, HWND _hwnd) = 0;
 
 	/// <summary>
 	/// 정적 매쉬 데이터 임포트

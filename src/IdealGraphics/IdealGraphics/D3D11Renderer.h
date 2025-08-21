@@ -90,7 +90,7 @@ public:
 	/// </summary>
 	/// <param name="_initalizeState">초기화 상태</param>
 	/// <returns>초기화 성공 여부</returns>
-	IE Initialize(const InitializeState& _initalizeState) override;
+	IE Initialize(const InitializeState& _initalizeState, HWND _hwnd) override;
 
 	/// <summary>
 	/// 정적 매쉬 임포트
