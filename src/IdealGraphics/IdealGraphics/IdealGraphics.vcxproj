@@ -126,6 +126,16 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)$(Platform)\$(Configuration)\IdealGraphics.dll" "$(SolutionDir)..\bin\$(Configuration)\"
+copy "$(SolutionDir)$(Platform)\$(Configuration)\IdealGraphics.lib" "$(SolutionDir)..\bin\$(Configuration)\"
+copy "$(SolutionDir)$(Platform)\$(Configuration)\IdealGraphics.pdb" "$(SolutionDir)..\bin\$(Configuration)\"
+
+copy "$(MSBuildProjectDirectory)\IRenderer.h" "$(SolutionDir)..\ExternLib\IdealRenderer\"
+copy "$(MSBuildProjectDirectory)\RenameType.h" "$(SolutionDir)..\ExternLib\IdealRenderer\"
+copy "$(MSBuildProjectDirectory)\IdealError.h" "$(SolutionDir)..\ExternLib\IdealRenderer\"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -146,6 +156,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)$(Platform)\$(Configuration)\IdealGraphics.dll" "$(SolutionDir)..\bin\$(Configuration)\"
+copy "$(SolutionDir)$(Platform)\$(Configuration)\IdealGraphics.lib" "$(SolutionDir)..\bin\$(Configuration)\"
+copy "$(SolutionDir)$(Platform)\$(Configuration)\IdealGraphics.pdb" "$(SolutionDir)..\bin\$(Configuration)\"
+
+copy "$(MSBuildProjectDirectory)\IRenderer.h" "$(SolutionDir)..\ExternLib\IdealRenderer\"
+copy "$(MSBuildProjectDirectory)\RenameType.h" "$(SolutionDir)..\ExternLib\IdealRenderer\"
+copy "$(MSBuildProjectDirectory)\IdealError.h" "$(SolutionDir)..\ExternLib\IdealRenderer\"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />

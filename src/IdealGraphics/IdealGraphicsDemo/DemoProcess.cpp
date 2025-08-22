@@ -165,6 +165,7 @@ void DemoProcess::CreateRendererState()
 
 	m_rendererState.m_swapChain.m_bufferCount = 1;
 	m_rendererState.m_swapChain.m_swapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	m_rendererState.m_swapChain.m_isWindowed = true;
 
 	// 레스터라이저
 	m_rendererState.m_rasterizer.m_fillMode = D3D11_FILL_SOLID;
@@ -186,9 +187,9 @@ LRESULT CALLBACK DemoProcess::WndProc(HWND hWnd, UINT message,
 	//	EndPaint(hWnd, &ps);
 	//	break;
 	//
-	//case WM_DESTROY:
-	//	PostQuitMessage(0);
-	//	break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
 	//
 	//case WM_LBUTTONDOWN:
 	//	m_staticManagers->keyManager->OnMouseLeftDown(LOWORD(lParam), HIWORD(lParam));

@@ -59,8 +59,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance,
 	RECT newRect;
 	newRect.left = 0;
 	newRect.top = 0;
-	newRect.right = 1920;
-	newRect.bottom = 1080;
+	newRect.right = 1240;
+	newRect.bottom = 720;
 
 	AdjustWindowRect(&newRect, _style, NULL);
 	//AdjustWindowRectEx(&newRect, _style, NULL, _exstyle);
