@@ -102,11 +102,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ExternLib\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\ExternLib\;C:\Program Files\OpenSSL-Win64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd\libssl.lib;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd\libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -126,14 +127,26 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DemoProcess.h" />
+    <ClInclude Include="FileStorage.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="IdealGraphicsDemo.h" />
+    <ClInclude Include="lz4.h" />
+    <ClInclude Include="lz4hc.h" />
+    <ClInclude Include="MemoryFileStream.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="SecureCodec.h" />
+    <ClInclude Include="stringUtil.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DemoProcess.cpp" />
+    <ClCompile Include="FileStorage.cpp" />
     <ClCompile Include="IdealGraphicsDemo.cpp" />
+    <ClCompile Include="lz4.c" />
+    <ClCompile Include="lz4hc.c" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MemoryFileStream.cpp" />
+    <ClCompile Include="SecureCodec.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IdealGraphicsDemo.rc" />

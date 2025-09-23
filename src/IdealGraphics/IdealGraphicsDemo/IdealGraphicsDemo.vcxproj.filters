@@ -16,6 +16,18 @@
     <Filter Include="DemoProcess">
       <UniqueIdentifier>{94a91ec2-f68e-4b87-9574-d7cc651668c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{25b4b609-eeb2-46d6-b59a-21523e4f2122}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\File">
+      <UniqueIdentifier>{f8529caf-6148-4f90-8e5a-fcc90fc2731d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\String">
+      <UniqueIdentifier>{87215a1b-b5ad-42a2-99bb-16dade67e268}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Lua">
+      <UniqueIdentifier>{3d08405a-03f3-4e0b-8a19-33c0df552d56}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -33,6 +45,24 @@
     <ClInclude Include="DemoProcess.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryFileStream.h">
+      <Filter>Utils\File</Filter>
+    </ClInclude>
+    <ClInclude Include="SecureCodec.h">
+      <Filter>Utils\File</Filter>
+    </ClInclude>
+    <ClInclude Include="FileStorage.h">
+      <Filter>Utils\File</Filter>
+    </ClInclude>
+    <ClInclude Include="stringUtil.h">
+      <Filter>Utils\String</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4hc.h">
+      <Filter>Utils\File</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4.h">
+      <Filter>Utils\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IdealGraphicsDemo.cpp">
@@ -40,6 +70,24 @@
     </ClCompile>
     <ClCompile Include="DemoProcess.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Utils\File</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryFileStream.cpp">
+      <Filter>Utils\File</Filter>
+    </ClCompile>
+    <ClCompile Include="SecureCodec.cpp">
+      <Filter>Utils\File</Filter>
+    </ClCompile>
+    <ClCompile Include="FileStorage.cpp">
+      <Filter>Utils\File</Filter>
+    </ClCompile>
+    <ClCompile Include="lz4.c">
+      <Filter>Utils\File</Filter>
+    </ClCompile>
+    <ClCompile Include="lz4hc.c">
+      <Filter>Utils\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

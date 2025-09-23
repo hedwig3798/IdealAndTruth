@@ -6,14 +6,8 @@ DemoProcess::DemoProcess()
 	: m_renderer(nullptr)
 	, m_hwnd(nullptr)
 	, m_managers(nullptr)
+	, m_fms()
 {
-	m_explain = L"W, S : 카메라 전방, 후방 이동\n";
-	m_explain += L"A, D : 카메라 좌우 이동\n";
-	m_explain += L"Q, E : 카메라 상하 이동\n";
-	m_explain += L"화살표 : 카메라 회전\n";
-	m_explain += L"숫자 0, 1, 2, 3 : 조명 갯수 설정\n";
-	m_explain += L"마우스 좌클릭 드래그: 카메라 회전\n";
-	// m_staticManagers = m_managers;
 }
 
 DemoProcess::~DemoProcess()
@@ -26,11 +20,9 @@ void DemoProcess::Initialize(HWND _hwnd)
 {
 	m_hwnd = _hwnd;
 
-	std::string path("./IdealGraphics.dll");
-
 	CreateRendererState();
 
-	HMODULE m_rendererDll = ::LoadLibraryA(path.c_str());
+	HMODULE m_rendererDll = ::LoadLibraryA("./IdealGraphics.dll");
 	if (nullptr == m_rendererDll)
 	{
 		return;

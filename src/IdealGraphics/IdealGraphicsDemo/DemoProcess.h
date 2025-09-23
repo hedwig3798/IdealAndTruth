@@ -1,8 +1,12 @@
 #pragma once
+#pragma comment(lib, "E:\\LuaBinding\\x64\\Debug\\lua5.1.lib")
+
 #include <windows.h>
 #include <string>
+
 #include "IdealRenderer/IRenderer.h"
-#include <d3d11.h>
+#include "FileStorage.h"
+
 class IRenderer;
 class ManagerSet;
 
@@ -16,9 +20,9 @@ private:
 	ManagerSet* m_managers;
 	static ManagerSet* m_staticManagers;
 
-	std::wstring m_explain;
-
 	IRenderer::InitializeState m_rendererState;
+
+	FileStorage m_fms;
 
 public:
 	// 持失切 社瑚切
