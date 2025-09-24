@@ -1,4 +1,5 @@
 ﻿#include "DemoProcess.h"
+#include "stringUtil.h"
 
 ManagerSet* DemoProcess::m_staticManagers = nullptr;
 
@@ -18,6 +19,9 @@ DemoProcess::~DemoProcess()
 
 void DemoProcess::Initialize(HWND _hwnd)
 {
+	FMSSetting();
+	LuaSetting();
+
 	m_hwnd = _hwnd;
 
 	CreateRendererState();
@@ -128,42 +132,112 @@ void DemoProcess::CreateRendererState()
 	RECT windowSize = {};
 	GetWindowRect(m_hwnd, &windowSize);
 
+	std::istream* s = m_fms.OpenFile(L"D3DSetting.lua");
+	if (nullptr == s)
+	{
+		return;
+	}
+
+	DO_STREAM(m_luaState, s);
+
+	GET_LUA_TABLE_NEW(m_luaState, stateTable, "RendererInitializeState");
+
+
 	// 디바이스 생성
-	m_rendererState.m_device.m_deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT | D3D11_CREATE_DEVICE_DEBUG;
+	IRenderer::InitializeState::Device deviceState = {};
+	deviceState.m_deviceFlags = 0;
+	GET_VALUE_NEW(stateTable, device, "Device", lua_tinker::table);
+	for (size_t i = 0; i < device.size(); i++)
+	{
+		GET_VALUE_NEW(device, flag, 1, UINT);
+		deviceState.m_deviceFlags |= flag;
+	}
+	m_rendererState.m_device = deviceState;
 
 	// 뎁스 스텐실 생성
-	m_rendererState.m_depthStancil.m_width = windowSize.right - windowSize.left;
-	m_rendererState.m_depthStancil.m_height = windowSize.bottom - windowSize.top;
-	m_rendererState.m_depthStancil.m_mipLevel = 1;
-	m_rendererState.m_depthStancil.m_arraySize = 1;
-	m_rendererState.m_depthStancil.m_format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	IRenderer::InitializeState::DepthStancil depthState = {};
+	GET_VALUE_NEW(stateTable, depthStancil, "DepthStancil", lua_tinker::table);
 
-	m_rendererState.m_depthStancil.m_sampleCount = 1;
-	m_rendererState.m_depthStancil.m_sampleQuality = 0;
-
-	m_rendererState.m_depthStancil.m_usage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	depthState.m_width = windowSize.right - windowSize.left;
+	depthState.m_height = windowSize.bottom - windowSize.top;
+	GET_VALUE(depthStancil, depthState.m_mipLevel, "mipLevel", UINT);
+	GET_VALUE(depthStancil, depthState.m_arraySize, "arraySize", UINT);
+	GET_VALUE(depthStancil, depthState.m_format, "format", UINT);
+	GET_VALUE(depthStancil, depthState.m_sampleCount, "sampleCount", UINT);
+	GET_VALUE(depthStancil, depthState.m_sampleQuality, "sampleQuality", UINT);
+	GET_VALUE(depthStancil, depthState.m_usage, "usage", UINT);
+	m_rendererState.m_depthStancil = depthState;
 
 	// 스왑 체인 생성
-	m_rendererState.m_swapChain.m_width = windowSize.right - windowSize.left;
-	m_rendererState.m_swapChain.m_height = windowSize.bottom - windowSize.top;
-	m_rendererState.m_swapChain.m_refreshRateNumerator = 60;
-	m_rendererState.m_swapChain.m_refreshRateDenominator = 1;
-	m_rendererState.m_swapChain.m_format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	m_rendererState.m_swapChain.m_scanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	m_rendererState.m_swapChain.m_scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	IRenderer::InitializeState::SwapCahin swapState = {};
+	GET_VALUE_NEW(stateTable, swapCahin, "SwapCahin", lua_tinker::table);
 
-	m_rendererState.m_swapChain.m_sampleCount = 1;
-	m_rendererState.m_swapChain.m_sampleQuality = 0;
-
-	m_rendererState.m_swapChain.m_bufferCount = 1;
-	m_rendererState.m_swapChain.m_swapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	m_rendererState.m_swapChain.m_isWindowed = true;
+	swapState.m_width = windowSize.right - windowSize.left;
+	swapState.m_height = windowSize.bottom - windowSize.top;
+	GET_VALUE(swapCahin, swapState.m_refreshRateNumerator, "refreshRateNumerator", UINT);
+	GET_VALUE(swapCahin, swapState.m_refreshRateDenominator, "refreshRateDenominator", UINT);
+	GET_VALUE(swapCahin, swapState.m_format, "format", UINT);
+	GET_VALUE(swapCahin, swapState.m_scanlineOrdering, "scanlineOrdering", UINT);
+	GET_VALUE(swapCahin, swapState.m_scaling, "scaling", UINT);
+	GET_VALUE(swapCahin, swapState.m_sampleCount, "sampleCount", UINT);
+	GET_VALUE(swapCahin, swapState.m_sampleQuality, "sampleQuality", UINT);
+	GET_VALUE(swapCahin, swapState.m_bufferCount, "bufferCount", UINT);
+	GET_VALUE(swapCahin, swapState.m_swapEffect, "swapEffect", UINT);
+	GET_VALUE(swapCahin, swapState.m_isWindowed, "isWindowed", bool);
+	m_rendererState.m_swapChain = swapState;
 
 	// 레스터라이저
-	m_rendererState.m_rasterizer.m_fillMode = D3D11_FILL_SOLID;
-	m_rendererState.m_rasterizer.m_cullMode = D3D11_CULL_BACK;
-	m_rendererState.m_rasterizer.m_isFrontCCW = true;
-	m_rendererState.m_rasterizer.m_isDepthClip = true;
+	IRenderer::InitializeState::RaseterizerState rasterState = {};
+	GET_VALUE_NEW(stateTable, rasterizser, "RaseterizerState", lua_tinker::table);
+
+	GET_VALUE(rasterizser, rasterState.m_fillMode, "fillMode", UINT);
+	GET_VALUE(rasterizser, rasterState.m_cullMode, "cullMode", UINT);
+	GET_VALUE(rasterizser, rasterState.m_isFrontCCW, "isFrontCCW", bool);
+	GET_VALUE(rasterizser, rasterState.m_isDepthClip, "isDepthClip", bool);
+	m_rendererState.m_rasterizer = rasterState;
+}
+
+void DemoProcess::FMSSetting()
+{
+	std::string exePath = ::GetExeDirectoryPath();
+	std::wstring resPath = ::StrToWstr(exePath) + L"\\..\\..\\Resource";
+	std::wstring resOutputPath = ::StrToWstr(exePath) + L"\\..\\Resource";
+
+	m_fms.SetThreadCount(4);
+	m_fms.SetChunkSize(1024);
+	m_fms.SetOutputFileName(L"IRenderer_");
+	m_fms.SetCompressExtension(L".rcom");
+	m_fms.SetCompressFilePath(resOutputPath);
+
+	if (false == m_fms.CompressAll(resPath))
+	{
+		return;
+	}
+}
+
+void DemoProcess::LuaSetting()
+{
+	m_luaState = ::luaL_newstate();
+	::luaL_openlibs(m_luaState);
+
+	D3DSetting();
+}
+
+void DemoProcess::D3DSetting()
+{
+	if (nullptr == m_luaState)
+	{
+		return;
+	}
+
+	std::istream* enumSetting = m_fms.OpenFile(L"D3DEnum.lua");
+	if (nullptr == enumSetting)
+	{
+		std::cout << "cannot open D3DEnum.lua\n";
+		return;
+	}
+
+	DO_STREAM(m_luaState, enumSetting);
 }
 
 LRESULT CALLBACK DemoProcess::WndProc(HWND hWnd, UINT message,

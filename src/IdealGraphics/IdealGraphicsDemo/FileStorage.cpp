@@ -276,7 +276,9 @@ void FileStorage::WriteChunkToFile()
 
 				// 새 파트 파일을 생성하고 연다
 				std::wstring currentPartPath =
-					m_compressPath + L"\\part_"
+					m_compressPath 
+					+ L"\\"
+					+ m_comFilename
 					+ std::to_wstring(m_partFileIndex++)
 					+ m_comExtension;
 

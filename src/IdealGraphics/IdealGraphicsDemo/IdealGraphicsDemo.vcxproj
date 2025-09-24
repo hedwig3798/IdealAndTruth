@@ -70,6 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)..\bin\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -130,6 +133,8 @@
     <ClInclude Include="FileStorage.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="IdealGraphicsDemo.h" />
+    <ClInclude Include="luaMacro.h" />
+    <ClInclude Include="lua_tinker.h" />
     <ClInclude Include="lz4.h" />
     <ClInclude Include="lz4hc.h" />
     <ClInclude Include="MemoryFileStream.h" />
@@ -142,11 +147,13 @@
     <ClCompile Include="DemoProcess.cpp" />
     <ClCompile Include="FileStorage.cpp" />
     <ClCompile Include="IdealGraphicsDemo.cpp" />
+    <ClCompile Include="lua_tinker.cpp" />
     <ClCompile Include="lz4.c" />
     <ClCompile Include="lz4hc.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MemoryFileStream.cpp" />
     <ClCompile Include="SecureCodec.cpp" />
+    <ClCompile Include="stringUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IdealGraphicsDemo.rc" />

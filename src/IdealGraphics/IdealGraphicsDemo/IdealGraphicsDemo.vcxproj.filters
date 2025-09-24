@@ -42,9 +42,6 @@
     <ClInclude Include="IdealGraphicsDemo.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DemoProcess.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryFileStream.h">
       <Filter>Utils\File</Filter>
     </ClInclude>
@@ -63,12 +60,18 @@
     <ClInclude Include="lz4.h">
       <Filter>Utils\File</Filter>
     </ClInclude>
+    <ClInclude Include="DemoProcess.h">
+      <Filter>DemoProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="luaMacro.h">
+      <Filter>Utils\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="lua_tinker.h">
+      <Filter>Utils\Lua</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IdealGraphicsDemo.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="DemoProcess.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
@@ -88,6 +91,15 @@
     </ClCompile>
     <ClCompile Include="lz4hc.c">
       <Filter>Utils\File</Filter>
+    </ClCompile>
+    <ClCompile Include="stringUtil.cpp">
+      <Filter>Utils\String</Filter>
+    </ClCompile>
+    <ClCompile Include="DemoProcess.cpp">
+      <Filter>DemoProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="lua_tinker.cpp">
+      <Filter>Utils\Lua</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

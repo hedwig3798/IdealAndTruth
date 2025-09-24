@@ -12,6 +12,16 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance,
 	_In_ LPTSTR	lpCmdLine,
 	_In_ int nCmdShow)
 {
+
+	// 디버깅을 위한 콘솔 창
+	::AllocConsole();
+	FILE* fp;
+	::freopen_s(&fp, "CONOUT$", "w", stdout);
+	::freopen_s(&fp, "CONOUT$", "w", stderr);
+	::freopen_s(&fp, "CONIN$", "r", stdin);
+
+	std::cout << "start Ideal Graphics Demo\n";
+
 	WCHAR szAppName[] = L"D3D Renderer Test";
 	HWND hWnd;
 	MSG	msg;
@@ -72,6 +82,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance,
 	SetWindowPos(hWnd, HWND_NOTOPMOST, nowRect.left, nowRect.top,
 		_newWidth, _newHeight, SWP_SHOWWINDOW);
 	demoProcess->Initialize(hWnd);
+
+
 
 	// 메시지 루프
 	while (TRUE)

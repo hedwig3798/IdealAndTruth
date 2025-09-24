@@ -3,9 +3,14 @@
 
 #include <windows.h>
 #include <string>
+#include <iostream>
 
 #include "IdealRenderer/IRenderer.h"
 #include "FileStorage.h"
+
+#include "lua/lua.hpp"
+#include "lua_tinker.h"
+#include "luaMacro.h"
 
 class IRenderer;
 class ManagerSet;
@@ -23,6 +28,8 @@ private:
 	IRenderer::InitializeState m_rendererState;
 
 	FileStorage m_fms;
+
+	lua_State* m_luaState;
 
 public:
 	// 생성자 소멸자
@@ -45,5 +52,13 @@ private:
 	void CameraUpdate(float _dt);
 
 	void CreateRendererState();
-};
 
+	/// <summary>
+	/// 파일 매니징 시스템 초기화
+	/// </summary>
+	void FMSSetting();
+
+	void LuaSetting();
+
+	void D3DSetting();
+};
