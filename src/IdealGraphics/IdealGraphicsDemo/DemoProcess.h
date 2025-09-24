@@ -61,4 +61,6 @@ private:
 	void LuaSetting();
 
 	void D3DSetting();
+
+	void ResizeWindow(int _width, int _hight);
 };

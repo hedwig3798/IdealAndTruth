@@ -129,19 +129,22 @@ void DemoProcess::CameraUpdate(float _dt)
 
 void DemoProcess::CreateRendererState()
 {
-	RECT windowSize = {};
-	GetWindowRect(m_hwnd, &windowSize);
-
 	std::istream* s = m_fms.OpenFile(L"D3DSetting.lua");
 	if (nullptr == s)
 	{
 		return;
 	}
-
 	DO_STREAM(m_luaState, s);
-
 	GET_LUA_TABLE_NEW(m_luaState, stateTable, "RendererInitializeState");
+	GET_LUA_TABLE_NEW(m_luaState, windowTable, "WindowSetting");
 
+	GET_VALUE_NEW(windowTable, width, "Width", int);
+	GET_VALUE_NEW(windowTable, height, "Height", int);
+
+	ResizeWindow(width, height);
+
+	RECT windowSize = {};
+	GetWindowRect(m_hwnd, &windowSize);
 
 	// 디바이스 생성
 	IRenderer::InitializeState::Device deviceState = {};
@@ -238,6 +241,42 @@ void DemoProcess::D3DSetting()
 	}
 
 	DO_STREAM(m_luaState, enumSetting);
+}
+
+void DemoProcess::ResizeWindow(int _width, int _hight)
+{
+	if (NULL == m_hwnd)
+	{
+		return;
+	}
+
+	RECT nowRect;
+	GetWindowRect(m_hwnd, &nowRect);
+
+	DWORD style = (DWORD)GetWindowLong(m_hwnd, GWL_STYLE);
+	DWORD exstyle = (DWORD)GetWindowLong(m_hwnd, GWL_EXSTYLE);
+
+	RECT newRect = {};
+	newRect.left = 0;
+	newRect.top = 0;
+	newRect.right = _width;
+	newRect.bottom = _hight;
+
+	AdjustWindowRect(&newRect, style, NULL);
+
+	// 클라이언트 영역보다 윈도 크기는 더 커야 한다. (외곽선, 타이틀 등)
+	int _newWidth = (newRect.right - newRect.left);
+	int _newHeight = (newRect.bottom - newRect.top);
+
+	SetWindowPos(
+		m_hwnd
+		, HWND_NOTOPMOST
+		, nowRect.left
+		, nowRect.top
+		, _newWidth
+		, _newHeight
+		, SWP_SHOWWINDOW
+	);
 }
 
 LRESULT CALLBACK DemoProcess::WndProc(HWND hWnd, UINT message,

@@ -1,8 +1,12 @@
+WindowSetting = 
+{
+    -- 나중에 추가할거 있으면 추가할 것
+    Width = 1024,
+    Height = 720,
+}
+
 RendererInitializeState = 
 {
-    Width = 1240,
-    Height = 720,
-
     Device = 
     {
         D3D11_CREATE_DEVICE_FLAG["D3D11_CREATE_DEVICE_BGRA_SUPPORT"],
