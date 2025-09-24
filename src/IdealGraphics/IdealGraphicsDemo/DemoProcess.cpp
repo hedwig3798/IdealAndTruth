@@ -19,6 +19,8 @@ DemoProcess::~DemoProcess()
 
 void DemoProcess::Initialize(HWND _hwnd)
 {
+	IE result;
+
 	FMSSetting();
 	LuaSetting();
 
@@ -32,7 +34,13 @@ void DemoProcess::Initialize(HWND _hwnd)
 		return;
 	}
 	m_renderer = ((IRenderer * (*)())GetProcAddress(m_rendererDll, "CreateD3D11Renderer"))();
-	m_renderer->Initialize(m_rendererState, m_hwnd);
+	result = m_renderer->Initialize(m_rendererState, m_hwnd);
+	if (IE::I_OK != result)
+	{
+		return;
+	}
+
+	m_renderer->SetBackgroundColor(1, 0, 0, 1);
 
 	RECT windowSize;
 	GetWindowRect(m_hwnd, &windowSize);
@@ -150,9 +158,9 @@ void DemoProcess::CreateRendererState()
 	IRenderer::InitializeState::Device deviceState = {};
 	deviceState.m_deviceFlags = 0;
 	GET_VALUE_NEW(stateTable, device, "Device", lua_tinker::table);
-	for (size_t i = 0; i < device.size(); i++)
+	for (size_t i = 1; i <= device.size(); i++)
 	{
-		GET_VALUE_NEW(device, flag, 1, UINT);
+		GET_VALUE_NEW(device, flag, i, UINT);
 		deviceState.m_deviceFlags |= flag;
 	}
 	m_rendererState.m_device = deviceState;
@@ -198,6 +206,27 @@ void DemoProcess::CreateRendererState()
 	GET_VALUE(rasterizser, rasterState.m_isFrontCCW, "isFrontCCW", bool);
 	GET_VALUE(rasterizser, rasterState.m_isDepthClip, "isDepthClip", bool);
 	m_rendererState.m_rasterizer = rasterState;
+
+	IRenderer::InitializeState::RenderTargetViewState renderState = {};
+	GET_VALUE_NEW(stateTable, renderTarget, "RenderTargetViewState", lua_tinker::table);
+
+	renderState.m_width = windowSize.right - windowSize.left;
+	renderState.m_height = windowSize.bottom - windowSize.top;
+	GET_VALUE(renderTarget, renderState.m_mipLevel, "mipLevel", UINT);
+	GET_VALUE(renderTarget, renderState.m_arraySize, "arraySize", UINT);
+	GET_VALUE(renderTarget, renderState.m_format, "format", UINT);
+	GET_VALUE(renderTarget, renderState.m_sampleCount, "sampleCount", UINT);
+	GET_VALUE(renderTarget, renderState.m_usage, "usage", UINT);
+	GET_VALUE(renderTarget, renderState.m_viewDimension, "viewDimension", UINT);
+
+	GET_VALUE_NEW(renderTarget, binflags, "bindFlags", lua_tinker::table);
+	renderState.m_bindFlags = 0;
+	for (size_t i = 1; i <= device.size(); i++)
+	{
+		GET_VALUE_NEW(binflags, flag, i, UINT);
+		renderState.m_bindFlags |= flag;
+	}
+	m_rendererState.m_renderTargetView = renderState;
 }
 
 void DemoProcess::FMSSetting()

@@ -40,8 +40,24 @@ RendererInitializeState =
     RaseterizerState = 
     {
         fillMode = D3D11_FILL_MODE["D3D11_FILL_SOLID"],
-        cullMode = D3D11_FILL_MODE["D3D11_CULL_BACK"],
+        cullMode = D3D11_CULL_MODE["D3D11_CULL_BACK"],
         isFrontCCW = true,
         isDepthClip = true,
+    },
+
+    RenderTargetViewState = 
+    {
+        mipLevel = 1,
+        arraySize = 1,
+        format = DXGI_FORMAT["DXGI_FORMAT_R8G8B8A8_UNORM"],
+        sampleCount = 1,
+        usage = DXGI_USAGE["D3D11_USAGE_DEFAULT"],
+        bindFlags = 
+        {
+            D3D11_BIND_FLAG["D3D11_BIND_RENDER_TARGET"],
+            D3D11_BIND_FLAG["D3D11_BIND_SHADER_RESOURCE"],
+        },
+        viewDimension = D3D_SRV_DIMENSION["D3D11_SRV_DIMENSION_TEXTURE2D"],
+
     },
 }

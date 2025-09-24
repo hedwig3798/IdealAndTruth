@@ -13,6 +13,7 @@ D3D11Renderer::D3D11Renderer()
 	, m_rasterizerState{}
 	, m_featureLevel{}
 	, m_allocators{}
+	, m_defaultBG{ 1, 1, 1, 1 }
 {
 
 }
@@ -67,7 +68,7 @@ IE D3D11Renderer::CreateSwapChain(const InitializeState::SwapCahin& _swapChain)
 	chainDesc.SampleDesc.Count = _swapChain.m_sampleCount;
 	chainDesc.SampleDesc.Quality = _swapChain.m_sampleQuality;
 
-	chainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
+	chainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	chainDesc.BufferCount = _swapChain.m_bufferCount;
 
 	chainDesc.OutputWindow = m_hwnd;
@@ -132,7 +133,7 @@ IE D3D11Renderer::CreateFinalRenterTargetView()
 	// 예외처리
 	if (nullptr == m_swapChain
 		|| nullptr == m_device
-		|| nullptr == m_finalRenderTargetView)
+		)
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
@@ -144,6 +145,11 @@ IE D3D11Renderer::CreateFinalRenterTargetView()
 		reinterpret_cast<void**>(&backBuffer)
 	);
 
+	if (nullptr == backBuffer)
+	{
+		return IE::CREATE_D3D_BUFFER;
+	}
+
 	// 렌더 타겟 뷰 생성
 	hr |= m_device->CreateRenderTargetView(
 		backBuffer,
@@ -152,10 +158,9 @@ IE D3D11Renderer::CreateFinalRenterTargetView()
 	);
 
 	// 예외처리
-	if (nullptr == backBuffer
-		|| nullptr == m_finalRenderTargetView)
+	if (nullptr == m_finalRenderTargetView)
 	{
-		return IE::CREATE_D3D_COMPONENT_FAIL;
+		return IE::CREATE_D3D_RENDER_TARGET_FAIL;
 	}
 
 	// 사용한 백 버퍼 인터페이스 반환	
@@ -205,7 +210,7 @@ IE D3D11Renderer::CreateDepthStencilBufferAndView(const InitializeState::DepthSt
 	);
 
 	if (nullptr == m_depthStancilBuffer
-		|| nullptr ==  m_depthStancilView)
+		|| nullptr == m_depthStancilView)
 	{
 		return IE::CREATE_D3D_COMPONENT_FAIL;
 	}
@@ -264,6 +269,48 @@ IE D3D11Renderer::CreateRasterizerState(const InitializeState::RaseterizerState&
 	return IE::I_OK;
 }
 
+IE D3D11Renderer::CreateFinalRenderTargetAndSRV(const InitializeState::RenderTargetViewState& _renderTarget)
+{
+	// HRESULT hr = S_OK;
+	// 
+	// D3D11_TEXTURE2D_DESC renderTargetTextureDesc{};
+	// renderTargetTextureDesc.Width = _renderTarget.m_width;
+	// renderTargetTextureDesc.Height = _renderTarget.m_height;
+	// renderTargetTextureDesc.MipLevels = _renderTarget.m_mipLevel;
+	// renderTargetTextureDesc.ArraySize = _renderTarget.m_arraySize;
+	// renderTargetTextureDesc.Format = static_cast<DXGI_FORMAT>(_renderTarget.m_format);
+	// renderTargetTextureDesc.SampleDesc.Count = _renderTarget.m_sampleCount;
+	// renderTargetTextureDesc.Usage = static_cast<D3D11_USAGE>(_renderTarget.m_usage);
+	// renderTargetTextureDesc.BindFlags = static_cast<DXGI_FORMAT>(_renderTarget.m_bindFlags);
+	// 
+	// hr |= m_device->CreateTexture2D(&renderTargetTextureDesc, nullptr, m_finalTexture2D.GetAddressOf());
+	// if (S_OK != hr)
+	// {
+	// 	return IE::CREATE_D3D_TEXTURE_FAIL;
+	// }
+	// 
+	// hr |= m_device->CreateRenderTargetView(m_finalTexture2D.Get(), 0, m_finalRenderTargetView.GetAddressOf());
+	// if (S_OK != hr)
+	// {
+	// 	return IE::CREATE_D3D_RENDER_TARGET_FAIL;
+	// }
+	// 
+	// D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc{};
+	// ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
+	// 
+	// shaderResourceViewDesc.Format = renderTargetTextureDesc.Format;
+	// shaderResourceViewDesc.ViewDimension = static_cast<D3D11_SRV_DIMENSION>(_renderTarget.m_viewDimension);
+	// shaderResourceViewDesc.Texture2D.MipLevels = _renderTarget.m_mipLevel;
+	// 
+	// hr |= m_device->CreateShaderResourceView(m_finalTexture2D.Get(), &shaderResourceViewDesc, m_finalSRV.GetAddressOf());
+	// if (S_OK != hr)
+	// {
+	// 	return IE::CREATE_D3D_SRV_FAIL;
+	// }
+
+	return IE::I_OK;
+}
+
 IE D3D11Renderer::ClearScreen()
 {
 	// 예외처리
@@ -274,13 +321,10 @@ IE D3D11Renderer::ClearScreen()
 		return IE::NULL_POINTER_ACCESS;
 	}
 
-	// 임시 색 ( R G B A )
-	float bgRed[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
-
 	// 렌더 타겟을 지정한 색으로 초기화
 	m_deviceContext->ClearRenderTargetView(
 		m_finalRenderTargetView.Get(),
-		bgRed
+		m_defaultBG
 	);
 
 	// 깊이 스텐실 뷰 초기화
@@ -291,26 +335,71 @@ IE D3D11Renderer::ClearScreen()
 		0
 	);
 
+	RECT windowSize = {};
+	GetWindowRect(m_hwnd, &windowSize);
+
+	D3D11_VIEWPORT vp = {};
+	vp.Width = static_cast<FLOAT>(windowSize.right - windowSize.left);
+	vp.Height = static_cast<FLOAT>(windowSize.bottom - windowSize.top);
+	vp.MinDepth = 0;
+	vp.MaxDepth = 1;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+
+	m_deviceContext->RSSetViewports(1, &vp);
+
+	m_deviceContext->OMSetRenderTargets(
+		1,
+		m_finalRenderTargetView.GetAddressOf(),
+		m_depthStancilView.Get()
+	);
+
 	return IE::I_OK;
 }
 
 IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 {
-	HRESULT hr = S_OK;
-
 	m_hwnd = _hwnd;
 
-	CreateD3D11DeviceContext(_initalizeState.m_device);
-	CreateSwapChain(_initalizeState.m_swapChain);
-	CreateDepthStencilBufferAndView(_initalizeState.m_depthStancil);
-	CreateRasterizerState(_initalizeState.m_rasterizer);
-	
+	IE result;
+	result = CreateD3D11DeviceContext(_initalizeState.m_device);
+	if (result != IE::I_OK)
+	{
+		return result;
+	}
+	result = CreateSwapChain(_initalizeState.m_swapChain);
+	if (result != IE::I_OK)
+	{
+		return result;
+	}
+	result = CreateDepthStencilBufferAndView(_initalizeState.m_depthStancil);
+	if (result != IE::I_OK)
+	{
+		return result;
+	}
+	result = CreateRasterizerState(_initalizeState.m_rasterizer);
+	if (result != IE::I_OK)
+	{
+		return result;
+	}
+
+	result = CreateFinalRenterTargetView();
+	if (result != IE::I_OK)
+	{
+		return result;
+	}
+
 	// 최종 생성 뷰를 바인드 한다
 	m_deviceContext->OMSetRenderTargets(
 		1,
 		m_finalRenderTargetView.GetAddressOf(),
 		m_depthStancilView.Get()
 	);
+
+	if (nullptr == m_finalRenderTargetView)
+	{
+		return IE::CREATE_D3D_COMPONENT_FAIL;
+	}
 
 	// 특정 색으로 화면을 초기화한다.
 	ClearScreen();
@@ -374,6 +463,7 @@ IE D3D11Renderer::Draw()
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
+	ClearScreen();
 	m_swapChain->Present(0, 0);
 	return IE::I_OK;
 }

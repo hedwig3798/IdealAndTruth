@@ -23,6 +23,8 @@ private:
 	ComPtr<ID3D11Texture2D> m_depthStancilBuffer;
 	ComPtr<ID3D11DepthStencilView> m_depthStancilView;
 	ComPtr<ID3D11RasterizerState> m_rasterizerState;
+	ComPtr<ID3D11Texture2D> m_finalTexture2D;
+	ComPtr<ID3D11ShaderResourceView> m_finalSRV;
 
 	D3D_FEATURE_LEVEL m_featureLevel;
 
@@ -31,6 +33,8 @@ private:
 	Matrix m_projection;
 
 	std::map<size_t, IAllocator*>m_allocators;
+
+	float m_defaultBG[4];
 
 public:
 	D3D11Renderer();
@@ -77,6 +81,8 @@ private:
 	/// <param name="_rasterizer">설정 값</param>
 	/// <returns>성공 여부</returns>
 	IE CreateRasterizerState(const InitializeState::RaseterizerState& _rasterizer);
+
+	IE CreateFinalRenderTargetAndSRV(const InitializeState::RenderTargetViewState& _renderTarget);
 
 	/// <summary>
 	/// 디버깅 함수
@@ -162,5 +168,23 @@ public:
 	/// </summary>
 	/// <returns>성공 여부</returns>
 	IE Draw() override;
+
+	/// <summary>
+	/// 렌더 타겟 클리어시 사용할 색
+	/// </summary>
+	/// <param name="_r">R</param>
+	/// <param name="_g">G</param>
+	/// <param name="_b">B</param>
+	/// <param name="_a">A</param>
+	/// <returns>성공 여부</returns>
+	IE SetBackgroundColor(float _r, float _g, float _b, float _a) override
+	{
+		m_defaultBG[0] = _r;
+		m_defaultBG[1] = _g;
+		m_defaultBG[2] = _b;
+		m_defaultBG[3] = _a;
+
+		return IE::I_OK;
+	};
 };
 

@@ -80,6 +80,22 @@ public:
 			bool m_isFrontCCW;
 			bool m_isDepthClip;
 		} m_rasterizer;
+
+		/// <summary>
+		/// 렌더 타겟 스테이트
+		/// </summary>
+		struct RenderTargetViewState
+		{
+			UINT m_width;
+			UINT m_height;
+			UINT m_mipLevel;
+			UINT m_arraySize;
+			UINT m_format;
+			UINT m_sampleCount;
+			UINT m_usage;
+			UINT m_bindFlags;
+			UINT m_viewDimension;
+		} m_renderTargetView;
 	};
 
 	IRenderer() {};
@@ -161,6 +177,16 @@ public:
 	/// </summary>
 	/// <returns>성공 여부</returns>
 	virtual IE Draw() = 0;
+
+	/// <summary>
+	/// 렌더 타겟 클리어시 사용할 색
+	/// </summary>
+	/// <param name="_r">R</param>
+	/// <param name="_g">G</param>
+	/// <param name="_b">B</param>
+	/// <param name="_a">A</param>
+	/// <returns>성공 여부</returns>
+	virtual IE SetBackgroundColor(float _r, float _g , float _b, float _a) = 0;
 };
 
 /// <summary>
