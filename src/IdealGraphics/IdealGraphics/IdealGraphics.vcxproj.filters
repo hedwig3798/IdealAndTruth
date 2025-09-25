@@ -45,6 +45,7 @@
     <ClInclude Include="RenameType.h">
       <Filter>Allocator</Filter>
     </ClInclude>
+    <ClInclude Include="..\IdealGraphicsDemo\MemoryFileStream.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

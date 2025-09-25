@@ -5,9 +5,7 @@ lua_tinker::def(L, #NAME, static_cast<int>(NAME));
 #define DO_STREAM(L, STREAM) \
 do \
 { \
-std::ostringstream oss; \
-oss << STREAM->rdbuf(); \
-std::string script = oss.str(); \
+const std::string& script = STREAM->str(); \
 lua_tinker::dobuffer(L, script.c_str(), script.size()); \
 } \
 while(0)

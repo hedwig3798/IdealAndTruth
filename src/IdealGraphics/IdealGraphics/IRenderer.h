@@ -13,8 +13,6 @@
 
 using namespace DirectX::SimpleMath;
 
-
-
 class IRenderer
 {
 public:
@@ -187,6 +185,22 @@ public:
 	/// <param name="_a">A</param>
 	/// <returns>성공 여부</returns>
 	virtual IE SetBackgroundColor(float _r, float _g , float _b, float _a) = 0;
+
+	/// <summary>
+	/// 정점 셰이더 생성
+	/// </summary>
+	/// <param name="_name">셰이더 이름</param>
+	/// <param name="_stream">셰이더 데이터 스트림</param>
+	/// <returns>성공 여부</returns>
+	virtual IE CreateVertexShader(const std::string& _name, std::stringstream* _stream) = 0;
+
+	/// <summary>
+	/// 픽셀 셰이더 생성
+	/// </summary>
+	/// <param name="_name">셰이더 이름</param>
+	/// <param name="_stream">셰이더 데이터 스트림</param>
+	/// <returns>성공 여부</returns>
+	virtual IE CreatePixelShader(const std::string&, std::stringstream* _stream) = 0;
 };
 
 /// <summary>

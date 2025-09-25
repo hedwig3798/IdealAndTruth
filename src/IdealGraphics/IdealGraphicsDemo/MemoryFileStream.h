@@ -1,4 +1,5 @@
 #pragma once
+#include <sstream>
 #include <streambuf>
 #include <istream>
 #include <vector>
@@ -7,7 +8,7 @@
 /// 파일 데이터를 스트림으로 받기 위한 버퍼
 /// </summary>
 class MemoryFileStreamBuf
-	: public std::streambuf
+	: public std::stringbuf
 {
 public:
 	MemoryFileStreamBuf(const std::vector<char>& _data);

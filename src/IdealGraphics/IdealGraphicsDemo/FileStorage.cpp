@@ -538,7 +538,7 @@ bool FileStorage::CompressAll(const std::wstring& _path)
 	return true;
 }
 
-std::istream* FileStorage::OpenFile(const std::wstring& _filename)
+std::stringstream* FileStorage::OpenFile(const std::wstring& _filename)
 {
 	if (true == m_compressInfoMap.empty())
 	{
@@ -563,9 +563,7 @@ std::istream* FileStorage::OpenFile(const std::wstring& _filename)
 	const CompressInfo& fileInfo = it->second;
 
 	// 전체 파일 데이터
-	std::vector<unsigned char> fileData;
-	// 원본 크기 만큼 확장
-	fileData.reserve(fileInfo.m_totalOriginalSize);
+	std::stringstream fileData;
 
 	// 블록 순서대로 해제
 	for (const auto& block : fileInfo.m_blocks)
@@ -611,12 +609,11 @@ std::istream* FileStorage::OpenFile(const std::wstring& _filename)
 		}
 
 		// 파일 데이터 이어붙이기
-		fileData.insert(fileData.end(), decomFile.begin(), decomFile.begin() + decSize);
+		fileData.write(reinterpret_cast<char*>(decomFile.data()), decomFile.size());
 	}
 
-
 	// 메모리 파일 스트림을 이동
-	m_fileChace[_filename] = std::make_unique<MemoryFileStream>(std::move(fileData));
+	m_fileChace[_filename] = std::make_unique<std::stringstream>(std::move(fileData));
 
 	// 만들어진 파일 스트림 리턴
 	return m_fileChace[_filename].get();

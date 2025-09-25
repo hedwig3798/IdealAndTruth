@@ -2,16 +2,18 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <wrl\client.h>
+#include <map>
+#include <string>
+#include <unordered_map>
+
 #include "IRenderer.h"
 #include "windows.h"
 #include "CustomAllocator/IAllocator.h"
-#include <map>
-#include <string>
 
 using Microsoft::WRL::ComPtr;
 
 class D3D11Renderer :
-    public IRenderer
+	public IRenderer
 {
 private:
 	HWND m_hwnd;
@@ -25,6 +27,9 @@ private:
 	ComPtr<ID3D11RasterizerState> m_rasterizerState;
 	ComPtr<ID3D11Texture2D> m_finalTexture2D;
 	ComPtr<ID3D11ShaderResourceView> m_finalSRV;
+
+	std::unordered_map<std::string, ComPtr<ID3D11VertexShader>> m_vsMap;
+	std::unordered_map<std::string, ComPtr<ID3D11PixelShader>> m_psMap;
 
 	D3D_FEATURE_LEVEL m_featureLevel;
 
@@ -81,8 +86,6 @@ private:
 	/// <param name="_rasterizer">설정 값</param>
 	/// <returns>성공 여부</returns>
 	IE CreateRasterizerState(const InitializeState::RaseterizerState& _rasterizer);
-
-	IE CreateFinalRenderTargetAndSRV(const InitializeState::RenderTargetViewState& _renderTarget);
 
 	/// <summary>
 	/// 디버깅 함수
@@ -186,5 +189,21 @@ public:
 
 		return IE::I_OK;
 	};
+
+	/// <summary>
+	/// 정점 셰이더 생성
+	/// </summary>
+	/// <param name="_name">셰이더 이름</param>
+	/// <param name="_stream">셰이더 데이터 스트림</param>
+	/// <returns>성공 여부</returns>
+	IE CreateVertexShader(const std::string&, std::stringstream* _stream) override;
+
+	/// <summary>
+	/// 픽셀 셰이더 생성
+	/// </summary>
+	/// <param name="_name">셰이더 이름</param>
+	/// <param name="_stream">셰이더 데이터 스트림</param>
+	/// <returns>성공 여부</returns>
+	IE CreatePixelShader(const std::string&, std::stringstream* _stream) override;
 };
 
