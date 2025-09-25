@@ -168,6 +168,7 @@ copy "$(MSBuildProjectDirectory)\IdealError.h" "$(SolutionDir)..\ExternLib\Ideal
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\IdealGraphicsDemo\MemoryFileStream.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="IdealError.h" />
