@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "D3D11Renderer.h"
-
+#include <sstream>
 #define MEM_SIZE 1'048'576'000 * 4 //4GB
 
 D3D11Renderer::D3D11Renderer()
@@ -43,7 +43,7 @@ IE D3D11Renderer::CreateD3D11DeviceContext(const InitializeState::Device& _devic
 
 	if (S_OK != hr)
 	{
-		return IE::CREATE_D3D_COMPONENT_FAIL;
+		return IE::CREATE_D3D_DEVICE_FAIL;
 	}
 
 	return IE::I_OK;
@@ -84,7 +84,7 @@ IE D3D11Renderer::CreateSwapChain(const InitializeState::SwapCahin& _swapChain)
 
 	if (nullptr == dxgiDevice)
 	{
-		return IE::NULL_POINTER_ACCESS;
+		return IE::CREATE_D3D_SWAP_CHAIN_FAIL;
 	}
 
 	// 디바이스 어뎁터 가져오기
@@ -95,7 +95,7 @@ IE D3D11Renderer::CreateSwapChain(const InitializeState::SwapCahin& _swapChain)
 
 	if (nullptr == dxgiAdapter)
 	{
-		return IE::NULL_POINTER_ACCESS;
+		return IE::CREATE_D3D_SWAP_CHAIN_FAIL;
 	}
 
 	// 디바이스 펙토리 가져오기
@@ -106,7 +106,7 @@ IE D3D11Renderer::CreateSwapChain(const InitializeState::SwapCahin& _swapChain)
 
 	if (nullptr == dxgiFactory)
 	{
-		return IE::NULL_POINTER_ACCESS;
+		return IE::CREATE_D3D_SWAP_CHAIN_FAIL;
 	}
 
 	// 스왑 체인 생성
@@ -114,7 +114,7 @@ IE D3D11Renderer::CreateSwapChain(const InitializeState::SwapCahin& _swapChain)
 
 	if (nullptr == m_swapChain)
 	{
-		return IE::NULL_POINTER_ACCESS;
+		return IE::CREATE_D3D_SWAP_CHAIN_FAIL;
 	}
 
 	// 사용한 인터페이스 제거
@@ -133,6 +133,7 @@ IE D3D11Renderer::CreateFinalRenterTargetView()
 	// 예외처리
 	if (nullptr == m_swapChain
 		|| nullptr == m_device
+		|| nullptr == m_deviceContext
 		)
 	{
 		return IE::NULL_POINTER_ACCESS;
@@ -147,7 +148,7 @@ IE D3D11Renderer::CreateFinalRenterTargetView()
 
 	if (nullptr == backBuffer)
 	{
-		return IE::CREATE_D3D_BUFFER;
+		return IE::CREATE_D3D_BUFFER_FAIL;
 	}
 
 	// 렌더 타겟 뷰 생성
@@ -212,7 +213,7 @@ IE D3D11Renderer::CreateDepthStencilBufferAndView(const InitializeState::DepthSt
 	if (nullptr == m_depthStancilBuffer
 		|| nullptr == m_depthStancilView)
 	{
-		return IE::CREATE_D3D_COMPONENT_FAIL;
+		return IE::CREATE_D3D_DEPTH_STANCIL_FIAL;
 	}
 
 	return IE::I_OK;
@@ -263,53 +264,13 @@ IE D3D11Renderer::CreateRasterizerState(const InitializeState::RaseterizerState&
 
 	if (nullptr == m_rasterizerState)
 	{
-		return IE::CREATE_D3D_COMPONENT_FAIL;
+		return IE::CREATE_D3D_RASTERIZERSTATE_FIAL;
 	}
 
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateFinalRenderTargetAndSRV(const InitializeState::RenderTargetViewState& _renderTarget)
-{
-	// HRESULT hr = S_OK;
-	// 
-	// D3D11_TEXTURE2D_DESC renderTargetTextureDesc{};
-	// renderTargetTextureDesc.Width = _renderTarget.m_width;
-	// renderTargetTextureDesc.Height = _renderTarget.m_height;
-	// renderTargetTextureDesc.MipLevels = _renderTarget.m_mipLevel;
-	// renderTargetTextureDesc.ArraySize = _renderTarget.m_arraySize;
-	// renderTargetTextureDesc.Format = static_cast<DXGI_FORMAT>(_renderTarget.m_format);
-	// renderTargetTextureDesc.SampleDesc.Count = _renderTarget.m_sampleCount;
-	// renderTargetTextureDesc.Usage = static_cast<D3D11_USAGE>(_renderTarget.m_usage);
-	// renderTargetTextureDesc.BindFlags = static_cast<DXGI_FORMAT>(_renderTarget.m_bindFlags);
-	// 
-	// hr |= m_device->CreateTexture2D(&renderTargetTextureDesc, nullptr, m_finalTexture2D.GetAddressOf());
-	// if (S_OK != hr)
-	// {
-	// 	return IE::CREATE_D3D_TEXTURE_FAIL;
-	// }
-	// 
-	// hr |= m_device->CreateRenderTargetView(m_finalTexture2D.Get(), 0, m_finalRenderTargetView.GetAddressOf());
-	// if (S_OK != hr)
-	// {
-	// 	return IE::CREATE_D3D_RENDER_TARGET_FAIL;
-	// }
-	// 
-	// D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc{};
-	// ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
-	// 
-	// shaderResourceViewDesc.Format = renderTargetTextureDesc.Format;
-	// shaderResourceViewDesc.ViewDimension = static_cast<D3D11_SRV_DIMENSION>(_renderTarget.m_viewDimension);
-	// shaderResourceViewDesc.Texture2D.MipLevels = _renderTarget.m_mipLevel;
-	// 
-	// hr |= m_device->CreateShaderResourceView(m_finalTexture2D.Get(), &shaderResourceViewDesc, m_finalSRV.GetAddressOf());
-	// if (S_OK != hr)
-	// {
-	// 	return IE::CREATE_D3D_SRV_FAIL;
-	// }
 
-	return IE::I_OK;
-}
 
 IE D3D11Renderer::ClearScreen()
 {
@@ -335,25 +296,56 @@ IE D3D11Renderer::ClearScreen()
 		0
 	);
 
-	RECT windowSize = {};
-	GetWindowRect(m_hwnd, &windowSize);
+	return IE::I_OK;
+}
 
-	D3D11_VIEWPORT vp = {};
-	vp.Width = static_cast<FLOAT>(windowSize.right - windowSize.left);
-	vp.Height = static_cast<FLOAT>(windowSize.bottom - windowSize.top);
-	vp.MinDepth = 0;
-	vp.MaxDepth = 1;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
+IE D3D11Renderer::CreateVertexShader(const std::string& _name, const std::vector<unsigned char>& _stream)
+{
+	// 같은 이름의 셰이더가 있다면 무시힌다.
+	auto mit = m_vsMap.find(_name);
+	if (mit != m_vsMap.end())
+	{
+		return IE::ALREADY_EXIST;
+	}
 
-	m_deviceContext->RSSetViewports(1, &vp);
+	// 널 체크
+	if (true == _stream.empty()
+		|| nullptr == m_device)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
 
-	m_deviceContext->OMSetRenderTargets(
-		1,
-		m_finalRenderTargetView.GetAddressOf(),
-		m_depthStancilView.Get()
-	);
+	// 정점 셰이더 객체 생성
+	ComPtr<ID3D11VertexShader> vs;
+	m_device->CreateVertexShader(_stream.data(), _stream.size(), nullptr, vs.GetAddressOf());
+	
+	// 맵에 저장
+	m_vsMap[_name] = vs;
+	return IE::I_OK;
+}
 
+IE D3D11Renderer::CreatePixelShader(const std::string& _name, const std::vector<unsigned char>& _stream)
+{
+	// 같은 이름의 셰이더가 있다면 무시힌다.
+	auto mit = m_psMap.find(_name);
+	if (mit != m_psMap.end())
+	{
+		return IE::ALREADY_EXIST;
+	}
+
+	// 널 체크
+	if (true == _stream.empty()
+		|| nullptr == m_device)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	// 정점 셰이더 객체 생성
+	ComPtr<ID3D11PixelShader> ps;
+	m_device->CreatePixelShader(_stream.data(), _stream.size(), nullptr, ps.GetAddressOf());
+
+	// 맵에 저장
+	m_psMap[_name] = ps;
 	return IE::I_OK;
 }
 
@@ -383,6 +375,12 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 		return result;
 	}
 
+	result = CreateViewPort();
+	if (result != IE::I_OK)
+	{
+		return result;
+	}
+
 	result = CreateFinalRenterTargetView();
 	if (result != IE::I_OK)
 	{
@@ -395,11 +393,6 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 		m_finalRenderTargetView.GetAddressOf(),
 		m_depthStancilView.Get()
 	);
-
-	if (nullptr == m_finalRenderTargetView)
-	{
-		return IE::CREATE_D3D_COMPONENT_FAIL;
-	}
 
 	// 특정 색으로 화면을 초기화한다.
 	ClearScreen();
@@ -463,7 +456,10 @@ IE D3D11Renderer::Draw()
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
-	ClearScreen();
+
+
+
 	m_swapChain->Present(0, 0);
+	ClearScreen();
 	return IE::I_OK;
 }

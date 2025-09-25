@@ -42,6 +42,12 @@ void DemoProcess::Initialize(HWND _hwnd)
 
 	m_renderer->SetBackgroundColor(1, 0, 0, 1);
 
+	const std::vector<unsigned char>& tempvs = m_fms.OpenFile(L"DefaultVS.cso");
+	m_renderer->CreateVertexShader("DefaultVS", tempvs);
+
+	const std::vector<unsigned char>& tempps = m_fms.OpenFile(L"DefaultVS.cso");
+	m_renderer->CreatePixelShader("DefaultPS", tempps);
+
 	RECT windowSize;
 	GetWindowRect(m_hwnd, &windowSize);
 
@@ -137,11 +143,12 @@ void DemoProcess::CameraUpdate(float _dt)
 
 void DemoProcess::CreateRendererState()
 {
-	std::istream* s = m_fms.OpenFile(L"D3DSetting.lua");
-	if (nullptr == s)
+	const std::vector<unsigned char> s = m_fms.OpenFile(L"D3DSetting.lua");
+	if (true == s.empty())
 	{
 		return;
 	}
+
 	DO_STREAM(m_luaState, s);
 	GET_LUA_TABLE_NEW(m_luaState, stateTable, "RendererInitializeState");
 	GET_LUA_TABLE_NEW(m_luaState, windowTable, "WindowSetting");
@@ -160,7 +167,7 @@ void DemoProcess::CreateRendererState()
 	GET_VALUE_NEW(stateTable, device, "Device", lua_tinker::table);
 	for (size_t i = 1; i <= device.size(); i++)
 	{
-		GET_VALUE_NEW(device, flag, i, UINT);
+		GET_VALUE_NEW(device, flag, static_cast<int>(i), UINT);
 		deviceState.m_deviceFlags |= flag;
 	}
 	m_rendererState.m_device = deviceState;
@@ -223,7 +230,7 @@ void DemoProcess::CreateRendererState()
 	renderState.m_bindFlags = 0;
 	for (size_t i = 1; i <= device.size(); i++)
 	{
-		GET_VALUE_NEW(binflags, flag, i, UINT);
+		GET_VALUE_NEW(binflags, flag, static_cast<int>(i), UINT);
 		renderState.m_bindFlags |= flag;
 	}
 	m_rendererState.m_renderTargetView = renderState;
@@ -262,8 +269,8 @@ void DemoProcess::D3DSetting()
 		return;
 	}
 
-	std::istream* enumSetting = m_fms.OpenFile(L"D3DEnum.lua");
-	if (nullptr == enumSetting)
+	const std::vector<unsigned char>& enumSetting = m_fms.OpenFile(L"D3DEnum.lua");
+	if (true == enumSetting.empty())
 	{
 		std::cout << "cannot open D3DEnum.lua\n";
 		return;

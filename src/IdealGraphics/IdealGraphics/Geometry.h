@@ -65,7 +65,7 @@ struct Cube
 		{{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}, {0.0f,-1.0f, 0.0f}}, // 23
 	};
 
-	int m_index[]
+	int m_index[36]
 	{
 		 0, 2, 1,   0, 3, 2,     // Front
 		 4, 6, 5,   4, 7, 6,     // Back

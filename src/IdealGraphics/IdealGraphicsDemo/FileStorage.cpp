@@ -538,7 +538,7 @@ bool FileStorage::CompressAll(const std::wstring& _path)
 	return true;
 }
 
-std::istream* FileStorage::OpenFile(const std::wstring& _filename)
+const std::vector<unsigned char>& FileStorage::OpenFile(const std::wstring& _filename)
 {
 	if (true == m_compressInfoMap.empty())
 	{
@@ -549,14 +549,14 @@ std::istream* FileStorage::OpenFile(const std::wstring& _filename)
 	auto cache = m_fileChace.find(_filename);
 	if (cache != m_fileChace.end())
 	{
-		return cache->second.get();
+		return cache->second;
 	}
 
 	// 있는 파일인지 확인
 	auto it = m_compressInfoMap.find(_filename);
 	if (it == m_compressInfoMap.end())
 	{
-		return nullptr;
+		return {};
 	}
 
 	// 압축 정보
@@ -564,8 +564,6 @@ std::istream* FileStorage::OpenFile(const std::wstring& _filename)
 
 	// 전체 파일 데이터
 	std::vector<unsigned char> fileData;
-	// 원본 크기 만큼 확장
-	fileData.reserve(fileInfo.m_totalOriginalSize);
 
 	// 블록 순서대로 해제
 	for (const auto& block : fileInfo.m_blocks)
@@ -579,7 +577,7 @@ std::istream* FileStorage::OpenFile(const std::wstring& _filename)
 		// 파일 열기 실패
 		if (false == comFile.is_open())
 		{
-			return nullptr;
+			return {};
 		}
 
 		// 압축 파일의 오프셋 위치 부터 읽기 블록 데이터 읽기
@@ -591,7 +589,7 @@ std::istream* FileStorage::OpenFile(const std::wstring& _filename)
 		// 블록 데이터 복호화
 		if (false == AES::CryptCTR(compBuf, decryptFile, block.m_key, block.m_iv))
 		{
-			return nullptr;
+			return {};
 		}
 
 		// 블록 압축 해제
@@ -607,19 +605,18 @@ std::istream* FileStorage::OpenFile(const std::wstring& _filename)
 		// 압축 해제 실패
 		if (decSize <= 0)
 		{
-			return nullptr;
+			return {};
 		}
 
 		// 파일 데이터 이어붙이기
 		fileData.insert(fileData.end(), decomFile.begin(), decomFile.begin() + decSize);
 	}
 
-
 	// 메모리 파일 스트림을 이동
-	m_fileChace[_filename] = std::make_unique<MemoryFileStream>(std::move(fileData));
+	m_fileChace[_filename] = std::move(fileData);
 
 	// 만들어진 파일 스트림 리턴
-	return m_fileChace[_filename].get();
+	return m_fileChace[_filename];
 }
 
 bool FileStorage::ResetCompressInfoMap()

@@ -40,16 +40,14 @@ int main()
 		return 0;
 	}
 
-	std::istream* testFile;
-	testFile = fms.OpenFile(L"AlphaBlend.h");
-	if (!testFile)
+	const std::vector<unsigned char>& testFile = fms.OpenFile(L"AlphaBlend.h");
+	if (true == testFile.empty())
 	{
 		std::cout << "Cannot Open File\n";
 		return 0;
 	}
-	std::wstring content((std::istreambuf_iterator<char>(*testFile)), std::istreambuf_iterator<char>());
 
-	std::wcout << content;
+	std::cout << testFile.data();
 
 	return 0;
 }

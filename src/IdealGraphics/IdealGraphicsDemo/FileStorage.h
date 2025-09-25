@@ -67,7 +67,7 @@ private:
 	// 파일 이름 - 압축 정보 맵
 	std::map<std::wstring, CompressInfo> m_compressInfoMap;
 	// 파일 이름 - 파일 스트림 캐시용 맵
-	std::map<std::wstring, std::unique_ptr<MemoryFileStream>> m_fileChace;
+	std::map<std::wstring, std::vector<unsigned char>> m_fileChace;
 
 	// 경로
 	std::wstring m_compressPath;
@@ -138,7 +138,7 @@ public:
 	/// </summary>
 	/// <param name="_filename">파일 이름.확장자</param>
 	/// <returns>파일 스트림</returns>
-	std::istream* OpenFile(const std::wstring& _filename);
+	const std::vector<unsigned char>& OpenFile(const std::wstring& _filename);
 
 	/// <summary>
 	/// 인덱스 파일 읽기
