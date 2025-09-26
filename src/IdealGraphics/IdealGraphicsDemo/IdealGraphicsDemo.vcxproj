@@ -137,7 +137,6 @@
     <ClInclude Include="lua_tinker.h" />
     <ClInclude Include="lz4.h" />
     <ClInclude Include="lz4hc.h" />
-    <ClInclude Include="MemoryFileStream.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SecureCodec.h" />
     <ClInclude Include="stringUtil.h" />
@@ -150,8 +149,6 @@
     <ClCompile Include="lua_tinker.cpp" />
     <ClCompile Include="lz4.c" />
     <ClCompile Include="lz4hc.c" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="MemoryFileStream.cpp" />
     <ClCompile Include="SecureCodec.cpp" />
     <ClCompile Include="stringUtil.cpp" />
   </ItemGroup>

@@ -42,10 +42,12 @@ void DemoProcess::Initialize(HWND _hwnd)
 
 	m_renderer->SetBackgroundColor(1, 0, 0, 1);
 
-	const std::vector<unsigned char>& tempvs = m_fms.OpenFile(L"DefaultVS.cso");
+	std::vector<unsigned char> tempvs;
+	m_fms.OpenFile(L"DefaultVS.cso", tempvs);
 	m_renderer->CreateVertexShader("DefaultVS", tempvs);
 
-	const std::vector<unsigned char>& tempps = m_fms.OpenFile(L"DefaultVS.cso");
+	std::vector<unsigned char> tempps;
+	m_fms.OpenFile(L"DefaultVS.cso", tempps);
 	m_renderer->CreatePixelShader("DefaultPS", tempps);
 
 	RECT windowSize;
@@ -143,7 +145,8 @@ void DemoProcess::CameraUpdate(float _dt)
 
 void DemoProcess::CreateRendererState()
 {
-	const std::vector<unsigned char> s = m_fms.OpenFile(L"D3DSetting.lua");
+	std::vector<unsigned char> s;
+	m_fms.OpenFile(L"D3DSetting.lua", s);
 	if (true == s.empty())
 	{
 		return;
@@ -269,7 +272,8 @@ void DemoProcess::D3DSetting()
 		return;
 	}
 
-	const std::vector<unsigned char>& enumSetting = m_fms.OpenFile(L"D3DEnum.lua");
+	std::vector<unsigned char> enumSetting;
+	m_fms.OpenFile(L"D3DEnum.lua", enumSetting);
 	if (true == enumSetting.empty())
 	{
 		std::cout << "cannot open D3DEnum.lua\n";

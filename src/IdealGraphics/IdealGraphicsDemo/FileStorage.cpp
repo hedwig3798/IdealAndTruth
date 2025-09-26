@@ -276,9 +276,7 @@ void FileStorage::WriteChunkToFile()
 
 				// 새 파트 파일을 생성하고 연다
 				std::wstring currentPartPath =
-					m_compressPath 
-					+ L"\\"
-					+ m_comFilename
+					m_compressPath + L"\\part_"
 					+ std::to_wstring(m_partFileIndex++)
 					+ m_comExtension;
 
@@ -538,32 +536,30 @@ bool FileStorage::CompressAll(const std::wstring& _path)
 	return true;
 }
 
-const std::vector<unsigned char>& FileStorage::OpenFile(const std::wstring& _filename)
+bool FileStorage::OpenFile(
+	const std::wstring& _filename
+	, OUT std::vector<unsigned char>& _fileData
+)
 {
+	_fileData.clear();
+
 	if (true == m_compressInfoMap.empty())
 	{
 		ResetCompressInfoMap();
-	}
-
-	// 캐시 확인
-	auto cache = m_fileChace.find(_filename);
-	if (cache != m_fileChace.end())
-	{
-		return cache->second;
 	}
 
 	// 있는 파일인지 확인
 	auto it = m_compressInfoMap.find(_filename);
 	if (it == m_compressInfoMap.end())
 	{
-		return {};
+		return false;
 	}
 
 	// 압축 정보
 	const CompressInfo& fileInfo = it->second;
 
-	// 전체 파일 데이터
-	std::vector<unsigned char> fileData;
+	// 원본 크기 만큼 확장
+	_fileData.reserve(fileInfo.m_totalOriginalSize);
 
 	// 블록 순서대로 해제
 	for (const auto& block : fileInfo.m_blocks)
@@ -577,7 +573,7 @@ const std::vector<unsigned char>& FileStorage::OpenFile(const std::wstring& _fil
 		// 파일 열기 실패
 		if (false == comFile.is_open())
 		{
-			return {};
+			return false;
 		}
 
 		// 압축 파일의 오프셋 위치 부터 읽기 블록 데이터 읽기
@@ -589,7 +585,7 @@ const std::vector<unsigned char>& FileStorage::OpenFile(const std::wstring& _fil
 		// 블록 데이터 복호화
 		if (false == AES::CryptCTR(compBuf, decryptFile, block.m_key, block.m_iv))
 		{
-			return {};
+			return false;
 		}
 
 		// 블록 압축 해제
@@ -605,18 +601,14 @@ const std::vector<unsigned char>& FileStorage::OpenFile(const std::wstring& _fil
 		// 압축 해제 실패
 		if (decSize <= 0)
 		{
-			return {};
+			return false;
 		}
 
 		// 파일 데이터 이어붙이기
-		fileData.insert(fileData.end(), decomFile.begin(), decomFile.begin() + decSize);
+		_fileData.insert(_fileData.end(), decomFile.begin(), decomFile.begin() + decSize);
 	}
 
-	// 메모리 파일 스트림을 이동
-	m_fileChace[_filename] = std::move(fileData);
-
-	// 만들어진 파일 스트림 리턴
-	return m_fileChace[_filename];
+	return true;
 }
 
 bool FileStorage::ResetCompressInfoMap()

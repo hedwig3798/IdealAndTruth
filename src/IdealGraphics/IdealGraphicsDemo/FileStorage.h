@@ -16,7 +16,6 @@
 
 #include "lz4hc.h"
 #include "lz4.h"
-#include "MemoryFileStream.h"
 
 /// <summary>
 /// File Management System
@@ -66,8 +65,6 @@ private:
 
 	// 파일 이름 - 압축 정보 맵
 	std::map<std::wstring, CompressInfo> m_compressInfoMap;
-	// 파일 이름 - 파일 스트림 캐시용 맵
-	std::map<std::wstring, std::vector<unsigned char>> m_fileChace;
 
 	// 경로
 	std::wstring m_compressPath;
@@ -134,11 +131,15 @@ public:
 	bool CompressAll(const std::wstring& _path);
 
 	/// <summary>
-	/// 파일 열기
+	/// 파일 데이터 얻기
 	/// </summary>
 	/// <param name="_filename">파일 이름.확장자</param>
-	/// <returns>파일 스트림</returns>
-	const std::vector<unsigned char>& OpenFile(const std::wstring& _filename);
+	/// <param name="_fileData">데이터를 받을 벡터</param>
+	/// <returns>성공 여부</returns>
+	bool OpenFile(
+		const std::wstring& _filename
+		, OUT std::vector<unsigned char>& _fileData
+	);
 
 	/// <summary>
 	/// 인덱스 파일 읽기
@@ -161,8 +162,14 @@ private:
 	/// <param name="_path">디렉토리</param>
 	bool CompressDirectory(const std::wstring& _path);
 
+	/// <summary>
+	/// 스레드를 활용해서 압축 해제
+	/// </summary>
 	void CompressWithThread();
 
+	/// <summary>
+	/// 청크를 파일에 쓰기
+	/// </summary>
 	void WriteChunkToFile();
 
 	/// <summary>
