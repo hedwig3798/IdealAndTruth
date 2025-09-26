@@ -19,6 +19,12 @@
     <Filter Include="Allocator">
       <UniqueIdentifier>{25fbbf43-6b31-4f53-9ce2-1926fb340d60}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{fd9057af-1cd4-43db-8e73-509af45b75ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SimpleMath">
+      <UniqueIdentifier>{6fcb4596-0ede-4666-90af-5573d5889a89}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -45,7 +51,9 @@
     <ClInclude Include="RenameType.h">
       <Filter>Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="..\IdealGraphicsDemo\MemoryFileStream.h" />
+    <ClInclude Include="Camera.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -59,6 +67,9 @@
     </ClCompile>
     <ClCompile Include="D3D11Renderer.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Camera</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

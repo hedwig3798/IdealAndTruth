@@ -141,7 +141,7 @@ public:
 	/// 카메라 오브젝트 생성
 	/// </summary>
 	/// <returns>카메라 ID</returns>
-	virtual IE CreateCamera() = 0;
+	virtual int CreateCamera() = 0;
 
 	/// <summary>
 	/// 메인 카메라 설정

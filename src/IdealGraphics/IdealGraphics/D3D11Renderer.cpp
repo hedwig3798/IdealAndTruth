@@ -14,6 +14,7 @@ D3D11Renderer::D3D11Renderer()
 	, m_featureLevel{}
 	, m_allocators{}
 	, m_defaultBG{ 1, 1, 1, 1 }
+	, m_mainCamera(-1)
 {
 
 }
@@ -299,6 +300,56 @@ IE D3D11Renderer::ClearScreen()
 	return IE::I_OK;
 }
 
+IE D3D11Renderer::CreateCameraBuffer()
+{
+	HRESULT hr = S_OK;
+
+	D3D11_BUFFER_DESC mbd = {};
+	mbd.Usage = D3D11_USAGE_DYNAMIC;
+	mbd.ByteWidth = sizeof(CameraBuffer);
+	mbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	mbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	mbd.MiscFlags = 0;
+	mbd.StructureByteStride = 0;
+
+	hr = m_device->CreateBuffer(&mbd, nullptr, m_cameraCBuffer.GetAddressOf());
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::BindMainCameraBuffer()
+{
+	HRESULT hr = S_OK;
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+
+	hr = m_deviceContext->Map(
+		m_cameraCBuffer.Get()
+		, 0
+		, D3D11_MAP_WRITE_DISCARD
+		, 0
+		, &mappedResource);
+
+	if (S_OK != hr)
+	{
+		return IE::MAPPING_SHADER_BUFFER_FAIL;
+	}
+
+	CameraBuffer* dataptr = (CameraBuffer*)mappedResource.pData;
+	dataptr->m_view = m_cameras[m_mainCamera].GetViewMatrix().Transpose();
+	dataptr->m_proj = m_cameras[m_mainCamera].GetProjMatrix().Transpose();
+
+	m_deviceContext->VSSetConstantBuffers(1, 1, m_cameraCBuffer.GetAddressOf());
+	m_deviceContext->Unmap(m_cameraCBuffer.Get(), 0);
+
+	return IE::I_OK;
+}
+
 IE D3D11Renderer::CreateVertexShader(const std::string& _name, const std::vector<unsigned char>& _stream)
 {
 	// 같은 이름의 셰이더가 있다면 무시힌다.
@@ -397,6 +448,9 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 	// 특정 색으로 화면을 초기화한다.
 	ClearScreen();
 
+	// 카메라 버퍼 생성
+	CreateCameraBuffer();
+
 	return IE::I_OK;
 }
 
@@ -425,13 +479,23 @@ IE D3D11Renderer::ImportMaterial()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateCamera()
+int D3D11Renderer::CreateCamera()
 {
-	return IE::I_OK;
+	m_cameras.push_back(Camera());
+
+	return static_cast<int>(m_cameras.size() - 1);
 }
 
 IE D3D11Renderer::SetCamera(int _cameraID)
 {
+	m_mainCamera = _cameraID;
+
+	if (m_mainCamera >= m_cameras.size()
+		|| m_mainCamera < 0)
+	{
+		return IE::WORNG_CAMERA;
+	}
+
 	return IE::I_OK;
 }
 
@@ -452,14 +516,35 @@ IE D3D11Renderer::SetTexture(int _materialID, int _slot /*= 0*/)
 
 IE D3D11Renderer::Draw()
 {
+	IE result = IE::I_OK;
+
+	// null check
 	if (nullptr == m_swapChain)
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
 
+	// main camera check
+	if (m_mainCamera >= m_cameras.size()
+		|| m_mainCamera < 0)
+	{
+		return IE::WORNG_CAMERA;
+	}
 
+	// 메인 카메라 행렬 계산
+	if (m_cameras[m_mainCamera].Caculate())
+	{
+		// 계산을 했다면 바인딩
+		BindMainCameraBuffer();
+	}
 
 	m_swapChain->Present(0, 0);
-	ClearScreen();
-	return IE::I_OK;
+
+	result = ClearScreen();
+	if (IE::I_OK != result)
+	{
+		return result;
+	}
+
+	return result;
 }

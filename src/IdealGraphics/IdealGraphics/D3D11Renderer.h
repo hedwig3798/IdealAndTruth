@@ -9,6 +9,7 @@
 #include "IRenderer.h"
 #include "windows.h"
 #include "CustomAllocator/IAllocator.h"
+#include "Camera.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -16,8 +17,17 @@ class D3D11Renderer :
 	public IRenderer
 {
 private:
+	struct CameraBuffer
+	{
+		Matrix m_view;
+		Matrix m_proj;
+	};
+
+private:
+	// 윈도우 핸들러
 	HWND m_hwnd;
 
+	// D3D Components
 	ComPtr<ID3D11Device> m_device;
 	ComPtr<ID3D11DeviceContext> m_deviceContext;
 	ComPtr<IDXGISwapChain> m_swapChain;
@@ -28,18 +38,25 @@ private:
 	ComPtr<ID3D11Texture2D> m_finalTexture2D;
 	ComPtr<ID3D11ShaderResourceView> m_finalSRV;
 
+	// Shader map
 	std::unordered_map<std::string, ComPtr<ID3D11VertexShader>> m_vsMap;
 	std::unordered_map<std::string, ComPtr<ID3D11PixelShader>> m_psMap;
 
 	D3D_FEATURE_LEVEL m_featureLevel;
 
+	// wvp matrix
 	Matrix m_world;
-	Matrix m_view;
-	Matrix m_projection;
 
+	// custom allocator
 	std::map<size_t, IAllocator*>m_allocators;
 
+	// default background color
 	float m_defaultBG[4];
+
+	// cameras
+	std::vector<Camera> m_cameras;
+	int m_mainCamera;
+	ComPtr<ID3D11Buffer> m_cameraCBuffer;
 
 public:
 	D3D11Renderer();
@@ -93,6 +110,18 @@ private:
 	/// </summary>
 	IE ClearScreen();
 
+	/// <summary>
+	/// 카메라 버퍼 생성
+	/// </summary>
+	/// <returns>성공 여부</returns>
+	IE CreateCameraBuffer();
+
+	/// <summary>
+	/// 셰이더에 메인 카메라 바인딩
+	/// </summary>
+	/// <returns>성공 여부</returns>
+	IE BindMainCameraBuffer();
+
 public:
 	/// <summary>
 	/// 초기화
@@ -134,8 +163,8 @@ public:
 	/// <summary>
 	/// 카메라 생성
 	/// </summary>
-	/// <returns>카메라 UID</returns>
-	IE CreateCamera() override;
+	/// <returns>카메라 ID</returns>
+	int CreateCamera() override;
 
 	/// <summary>
 	/// 메인 카메라 생성

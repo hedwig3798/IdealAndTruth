@@ -4,7 +4,6 @@ SamplerState g_Sampler : register(s0);
 struct VertexOut
 {
 	float4 Pos : SV_POSITION;
-	float3 PosW : POSITION;
 	float2 Tex : TEXCOORD0;
 };
 

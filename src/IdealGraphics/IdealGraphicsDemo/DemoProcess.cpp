@@ -50,6 +50,9 @@ void DemoProcess::Initialize(HWND _hwnd)
 	m_fms.OpenFile(L"DefaultVS.cso", tempps);
 	m_renderer->CreatePixelShader("DefaultPS", tempps);
 
+	int camera = m_renderer->CreateCamera();
+	m_renderer->SetCamera(camera);
+
 	RECT windowSize;
 	GetWindowRect(m_hwnd, &windowSize);
 
@@ -90,7 +93,14 @@ void DemoProcess::Update()
 
 void DemoProcess::Render()
 {
-	m_renderer->Draw();
+	IE result;
+	result = m_renderer->Draw();
+	if (IE::I_OK != result)
+	{
+		std::cout << "DrawError : " << static_cast<int>(result) << '\n';
+		return;
+	}
+
 	// this->graphicsEngine->begineDraw();
 	// this->object->Render(graphicsEngine);
 	// 
