@@ -190,6 +190,7 @@ copy "$(MSBuildProjectDirectory)\IdealError.h" "$(SolutionDir)..\ExternLib\Ideal
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="D3D11Renderer.cpp" />
+    <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

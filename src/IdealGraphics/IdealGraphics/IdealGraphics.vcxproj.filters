@@ -25,6 +25,9 @@
     <Filter Include="SimpleMath">
       <UniqueIdentifier>{6fcb4596-0ede-4666-90af-5573d5889a89}</UniqueIdentifier>
     </Filter>
+    <Filter Include="customMap">
+      <UniqueIdentifier>{dceb4fd9-3a31-4963-b436-9493a88de712}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -70,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Vertex</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -34,24 +34,45 @@ void DemoProcess::Initialize(HWND _hwnd)
 		return;
 	}
 	m_renderer = ((IRenderer * (*)())GetProcAddress(m_rendererDll, "CreateD3D11Renderer"))();
-	result = m_renderer->Initialize(m_rendererState, m_hwnd);
-	if (IE::I_OK != result)
-	{
-		return;
-	}
 
-	m_renderer->SetBackgroundColor(1, 0, 0, 1);
+	IE_ASSERT(
+		m_renderer->Initialize(m_rendererState, m_hwnd)
+		, "Renderer Initialize Fail"
+	);
+
+	// result = m_renderer->Initialize(m_rendererState, m_hwnd);
+	// if (IE::I_OK != result)
+	// {
+	// 	return;
+	// }
+
+	IE_ASSERT(
+		m_renderer->SetBackgroundColor(1, 0, 0, 1)
+		, "Set Background Color Fail"
+	);
 
 	std::vector<unsigned char> tempvs;
 	m_fms.OpenFile(L"DefaultVS.cso", tempvs);
-	m_renderer->CreateVertexShader("DefaultVS", tempvs);
+
+	IE_ASSERT(
+		m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPU, "DefaultVS", tempvs)
+		, "Cannot Create VertexShader"
+	);
+
 
 	std::vector<unsigned char> tempps;
 	m_fms.OpenFile(L"DefaultVS.cso", tempps);
-	m_renderer->CreatePixelShader("DefaultPS", tempps);
+	IE_ASSERT(
+		m_renderer->CreatePixelShader("DefaultPS", tempps)
+		, "Cannot Create PixelShader"
+	);
+
 
 	int camera = m_renderer->CreateCamera();
-	m_renderer->SetCamera(camera);
+	IE_ASSERT(
+		m_renderer->SetCamera(camera)
+		, "Cannot Set Camera"
+	);
 
 	RECT windowSize;
 	GetWindowRect(m_hwnd, &windowSize);

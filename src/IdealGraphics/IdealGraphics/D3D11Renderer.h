@@ -10,6 +10,7 @@
 #include "windows.h"
 #include "CustomAllocator/IAllocator.h"
 #include "Camera.h"
+#include "Vertex.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -41,6 +42,16 @@ private:
 	// Shader map
 	std::unordered_map<std::string, ComPtr<ID3D11VertexShader>> m_vsMap;
 	std::unordered_map<std::string, ComPtr<ID3D11PixelShader>> m_psMap;
+
+	// Buffer map
+	std::unordered_map<std::string, ComPtr<ID3D11Buffer>> m_vBuffer;
+	std::unordered_map<std::string, ComPtr<ID3D11Buffer>> m_iBuffer;
+
+	// texture map
+	std::unordered_map<std::string, ComPtr<ID3D11ShaderResourceView>> m_tBuffer;
+
+	// input layout buffer
+	std::vector<ComPtr<ID3D11InputLayout>> m_iaBuffer;
 
 	D3D_FEATURE_LEVEL m_featureLevel;
 
@@ -121,6 +132,9 @@ private:
 	/// </summary>
 	/// <returns>성공 여부</returns>
 	IE BindMainCameraBuffer();
+
+
+	IE CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigned char>& _stream);
 
 public:
 	/// <summary>
@@ -225,7 +239,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	IE CreateVertexShader(const std::string&, const std::vector<unsigned char>& _stream) override;
+	IE CreateVertexShader(VERTEX_TYPE _type, const std::string&, const std::vector<unsigned char>& _stream) override;
 
 	/// <summary>
 	/// 픽셀 셰이더 생성

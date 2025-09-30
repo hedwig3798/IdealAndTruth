@@ -350,7 +350,97 @@ IE D3D11Renderer::BindMainCameraBuffer()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateVertexShader(const std::string& _name, const std::vector<unsigned char>& _stream)
+IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigned char>& _stream)
+{
+	HRESULT hr = S_OK;
+	IE result = IE::I_OK;
+
+	D3D11_INPUT_ELEMENT_DESC* decs = nullptr;
+	ComPtr<ID3DBlob> blob;
+	UINT eleNum = 0;
+
+	if (0 == m_iaBuffer.size())
+	{
+		m_iaBuffer.resize(static_cast<int>(VERTEX_TYPE::END));
+		for (auto& ia : m_iaBuffer)
+		{
+			ia = nullptr;
+		}
+	}
+
+	// 셰이더 정보 가져오기
+	hr = ::D3DCreateBlob(_stream.size(), blob.GetAddressOf());
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BLOB_FAIL;
+	}
+	std::memcpy(blob->GetBufferPointer(), _stream.data(), _stream.size());
+
+	switch (_type)
+	{
+	case IRenderer::VERTEX_TYPE::VertexSuper:
+	{
+		decs = VertexSuper::m_IADesc;
+		eleNum = 7;
+		break;
+	}
+	case IRenderer::VERTEX_TYPE::VertexP:
+	{
+		decs = VertexP::m_IADesc;
+		eleNum = 1;
+		break;
+	}
+	case IRenderer::VERTEX_TYPE::VertexPU:
+	{
+		decs = VertexPU::m_IADesc;
+		eleNum = 2;
+		break;
+	}
+	case IRenderer::VERTEX_TYPE::VertexPN:
+	{
+		decs = VertexPN::m_IADesc;
+		eleNum = 2;
+		break;
+	}
+	case IRenderer::VERTEX_TYPE::VertexPUN:
+	{
+		decs = VertexPUN::m_IADesc;
+		eleNum = 3;
+		break;
+	}
+	case IRenderer::VERTEX_TYPE::VertexPC:
+	{
+		decs = VertexPC::m_IADesc;
+		eleNum = 2;
+		break;
+	}
+	default:
+		break;
+	}
+
+	if (decs == nullptr
+		|| m_device == nullptr)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	hr = m_device->CreateInputLayout(
+		decs
+		, eleNum
+		, blob->GetBufferPointer()
+		, blob->GetBufferSize()
+		, m_iaBuffer[static_cast<int>(_type)].GetAddressOf()
+	);
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_INPUT_LAYOUT_FAIL;
+	}
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, const std::vector<unsigned char>& _stream)
 {
 	// 같은 이름의 셰이더가 있다면 무시힌다.
 	auto mit = m_vsMap.find(_name);
@@ -372,6 +462,21 @@ IE D3D11Renderer::CreateVertexShader(const std::string& _name, const std::vector
 	
 	// 맵에 저장
 	m_vsMap[_name] = vs;
+
+	if (0 == m_iaBuffer.size())
+	{
+		m_iaBuffer.resize(static_cast<int>(VERTEX_TYPE::END));
+		for (auto& ia : m_iaBuffer)
+		{
+			ia = nullptr;
+		}
+	}
+
+	if (nullptr == m_iaBuffer[static_cast<int>(_type)])
+	{
+		return CreateInputLayout(_type, _stream);
+	}
+
 	return IE::I_OK;
 }
 

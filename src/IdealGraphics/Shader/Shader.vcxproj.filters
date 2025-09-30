@@ -7,6 +7,9 @@
     <Filter Include="Pixel">
       <UniqueIdentifier>{0c981b0d-4d8d-4413-a84d-f94e1802b083}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IADummy">
+      <UniqueIdentifier>{fb707ee2-1ac0-40a9-b338-6f64aa3cc80a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DefaultVS.hlsl">
@@ -14,6 +17,9 @@
     </FxCompile>
     <FxCompile Include="DefaultPS.hlsl">
       <Filter>Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexSuperDummy.hlsl">
+      <Filter>IADummy</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

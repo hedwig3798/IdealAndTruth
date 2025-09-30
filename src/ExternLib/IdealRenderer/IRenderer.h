@@ -98,6 +98,17 @@ public:
 		} m_renderTargetView;
 	};
 
+	enum class VERTEX_TYPE
+	{
+		VertexSuper,
+		VertexP,
+		VertexPU,
+		VertexPN,
+		VertexPUN,
+		VertexPC,
+		END,
+	};
+
 	IRenderer() {};
 	virtual ~IRenderer() {};
 
@@ -194,7 +205,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreateVertexShader(const std::string& _name, const std::vector<unsigned char>& _stream) = 0;
+	virtual IE CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, const std::vector<unsigned char>& _stream) = 0;
 
 	/// <summary>
 	/// 픽셀 셰이더 생성

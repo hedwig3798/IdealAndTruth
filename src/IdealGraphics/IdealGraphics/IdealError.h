@@ -14,12 +14,28 @@ enum class IdealError
 	CREATE_D3D_SWAP_CHAIN_FAIL = 9,			// D3D 스왑 체인 생성 실패
 	CREATE_D3D_DEPTH_STANCIL_FIAL = 10,		// D3D 뎁스 스텐실 생성 실패
 	CREATE_D3D_RASTERIZERSTATE_FIAL = 11,	// D3D 레스터라이저 생성 실패
-	ALREADY_EXIST = 12,						// 생성하려는 무언가가 이미 있음 
-	STREAM_ERROR = 13,						// 올바르지 않은 스트림 
-	WORNG_CAMERA = 14,						// 올바르지 않은 카메라
-	MAPPING_SHADER_BUFFER_FAIL = 15,		// 버퍼를 셰이더에 매핑 실패 
+	STREAM_ERROR = 12,						// 올바르지 않은 스트림 
+	WORNG_CAMERA = 13,						// 올바르지 않은 카메라
+	MAPPING_SHADER_BUFFER_FAIL = 14,		// 버퍼를 셰이더에 매핑 실패 
+	CREATE_D3D_BLOB_FAIL = 15,				// D3D blob 객체 생성 실패 
+	CREATE_D3D_INPUT_LAYOUT_FAIL = 16,		// D3D IA 생성 실패 
 	UNKNOWN_ERROR,							// 알 수 없는 에러
 	END,
 };
 
 typedef IdealError IE;
+
+#ifdef _DEBUG
+#define IE_ASSERT(FUNC, MSG) \
+{ \
+	IE result;\
+	result = FUNC; \
+	if(IE::I_OK != result) \
+	{ \
+		std::cout << static_cast<int>(result) << " : " << MSG << std::endl; \
+		return; \
+	} \
+}
+#else
+#define IE_ASSERT(FUNC, MSG) FUNC;
+#endif

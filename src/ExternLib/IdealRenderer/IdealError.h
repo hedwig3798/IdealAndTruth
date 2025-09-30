@@ -18,8 +18,25 @@ enum class IdealError
 	STREAM_ERROR = 13,						// 올바르지 않은 스트림 
 	WORNG_CAMERA = 14,						// 올바르지 않은 카메라
 	MAPPING_SHADER_BUFFER_FAIL = 15,		// 버퍼를 셰이더에 매핑 실패 
+	CREATE_D3D_BLOB_FAIL = 16,				// D3D blob 객체 생성 실패 
+	CREATE_D3D_INPUT_LAYOUT_FAIL = 17,		// D3D IA 생성 실패 
 	UNKNOWN_ERROR,							// 알 수 없는 에러
 	END,
 };
 
 typedef IdealError IE;
+
+#ifdef tttt
+#define IE_ASSERT(FUNC, MSG) \
+{ \
+	IE result;\
+	result = FUNC; \
+	if(IE::I_OK != result) \
+	{ \
+		std::cout << static_cast<int>(result) << " : " << MSG << std::endl; \
+		return; \
+	} \
+}
+#else
+#define IE_ASSERT(FUNC, MSG) FUNC;
+#endif
