@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <algorithm>
 
 #include "IRenderer.h"
 #include "windows.h"
@@ -12,16 +13,31 @@
 #include "Camera.h"
 #include "Vertex.h"
 
+
 using Microsoft::WRL::ComPtr;
 
 class D3D11Renderer :
 	public IRenderer
 {
 private:
+	struct CurrentReder
+	{
+		ComPtr<ID3D11VertexShader> m_vs = nullptr;
+		ComPtr<ID3D11InputLayout> m_ia = nullptr;
+		ComPtr<ID3D11PixelShader> m_ps = nullptr;
+		ComPtr<ID3D11Buffer> m_vb = nullptr;
+		ComPtr<ID3D11Buffer> m_ib = nullptr;
+	};
+
 	struct CameraBuffer
 	{
 		Matrix m_view;
 		Matrix m_proj;
+	};
+
+	struct WorldBuffer
+	{
+		Matrix m_world;
 	};
 
 private:
@@ -40,12 +56,12 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_finalSRV;
 
 	// Shader map
-	std::unordered_map<std::string, ComPtr<ID3D11VertexShader>> m_vsMap;
+	std::unordered_map<std::string, std::pair<ComPtr<ID3D11VertexShader>, ComPtr<ID3D11InputLayout>>> m_vsMap;
 	std::unordered_map<std::string, ComPtr<ID3D11PixelShader>> m_psMap;
 
 	// Buffer map
-	std::unordered_map<std::string, ComPtr<ID3D11Buffer>> m_vBuffer;
-	std::unordered_map<std::string, ComPtr<ID3D11Buffer>> m_iBuffer;
+	std::unordered_map<std::string, std::pair<ComPtr<ID3D11Buffer>, UINT>> m_vBuffer;
+	std::unordered_map<std::string, std::pair<ComPtr<ID3D11Buffer>, UINT>> m_iBuffer;
 
 	// texture map
 	std::unordered_map<std::string, ComPtr<ID3D11ShaderResourceView>> m_tBuffer;
@@ -65,17 +81,23 @@ private:
 	float m_defaultBG[4];
 
 	// cameras
-	std::vector<Camera> m_cameras;
-	int m_mainCamera;
+	std::vector<std::shared_ptr<Camera>> m_cameras;
+	std::weak_ptr<Camera> m_mainCamera;
 	ComPtr<ID3D11Buffer> m_cameraCBuffer;
+
+	// render object vector
+	std::vector<IRenderObject> m_renderVector;
+	CurrentReder m_currentRenderSet;
+
+	ComPtr<ID3D11Buffer> m_worldBuffer;
+
 
 public:
 	D3D11Renderer();
 	virtual ~D3D11Renderer();
 
 private:
-	/// 초기화 함수 모음
-
+#pragma region Create
 	/// <summary>
 	/// D3D11 Device 와 Device Context를 생성
 	/// </summary>
@@ -128,15 +150,66 @@ private:
 	IE CreateCameraBuffer();
 
 	/// <summary>
+	/// 월드 버퍼 생성
+	/// </summary>
+	/// <returns>성공 여부</returns>
+	IE CreateWorldBuffer();
+
+	/// <summary>
+	/// InputLayout 생성
+	/// </summary>
+	/// <param name="_type">정점 타입</param>
+	/// <param name="_stream">vs 데이터</param>
+	/// <returns>성공 여부</returns>
+	IE CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigned char>& _stream);
+#pragma endregion
+
+#pragma region Bind
+	/// <summary>
 	/// 셰이더에 메인 카메라 바인딩
 	/// </summary>
 	/// <returns>성공 여부</returns>
 	IE BindMainCameraBuffer();
 
+	/// <summary>
+	/// 셰이더에 월드 버퍼 바인딩
+	/// </summary>
+	/// <returns>성공 여부</returns>
+	IE BindWorldBuffer(const Matrix& _matrix);
 
-	IE CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigned char>& _stream);
+	/// <summary>
+	/// 정점 셰이더와 그에 맞는 Input layout을 바인딩
+	/// </summary>
+	/// <param name="_vs">정점 셰이더</param>
+	/// <param name="_ia">Input Layout</param>
+	/// <returns>성공 여부</returns>
+	IE BindVertexShaderAndInputLayout(ComPtr<ID3D11VertexShader> _vs, ComPtr<ID3D11InputLayout> _ia);
+
+	/// <summary>
+	/// 픽셀 셰이더 바인딩
+	/// </summary>
+	/// <param name="_ps">픽셀 셰이더</param>
+	/// <returns>성공 여부</returns>
+	IE BindPixelShader(ComPtr<ID3D11PixelShader> _ps);
+
+	/// <summary>
+	/// 정점 버퍼 바인딩
+	/// </summary>
+	/// <param name="_vb">정점 버퍼</param>
+	/// <param name="_size">요소의 크기</param>
+	/// <returns>성공 여부</returns>
+	IE BindVertexBuffer(ComPtr<ID3D11Buffer> _vb, UINT _size);
+
+	/// <summary>
+	/// 인덱스 버퍼 바인딩
+	/// </summary>
+	/// <param name="_id">인덱스 버퍼</param>
+	/// <returns>성공 여부</returns>
+	IE BindIndexBuffer(ComPtr<ID3D11Buffer> _id);
+#pragma endregion
 
 public:
+
 	/// <summary>
 	/// 초기화
 	/// </summary>
@@ -178,14 +251,14 @@ public:
 	/// 카메라 생성
 	/// </summary>
 	/// <returns>카메라 ID</returns>
-	int CreateCamera() override;
+	std::weak_ptr<ICamera> CreateCamera() override;
 
 	/// <summary>
 	/// 메인 카메라 생성
 	/// </summary>
 	/// <param name="_cameraID">카메라 UID</param>
 	/// <returns>성공 여부</returns>
-	IE SetCamera(int _cameraID) override;
+	IE SetCamera(std::weak_ptr<ICamera> _cameraID) override;
 
 	/// <summary>
 	/// 매쉬에 애니메이션 설정
@@ -248,5 +321,15 @@ public:
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
 	IE CreatePixelShader(const std::string&, const std::vector<unsigned char>& _stream) override;
+
+	/// <summary>
+	/// 정점 및 인덱스 버퍼 생성
+	/// </summary>
+	/// <param name="_name">매쉬 이름</param>
+	/// <param name="_stream">데이터</param>
+	/// <returns>성공 여부</returns>
+	IE CreateVertexIndexBuffer(std::string _name, const std::vector<unsigned char>& _stream);
+
+	IE AddRenderObject(const IRenderObject& _renderObject);
 };
 

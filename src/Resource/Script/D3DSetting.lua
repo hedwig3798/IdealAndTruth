@@ -5,8 +5,12 @@ WindowSetting =
     Height = 720,
 }
 
+-- 렌더 
 RendererInitializeState = 
 {
+    -- 초기 렌더 벡터의 크기
+    RenderVectorSize = 1000,
+
     Device = 
     {
         D3D11_CREATE_DEVICE_FLAG["D3D11_CREATE_DEVICE_BGRA_SUPPORT"],

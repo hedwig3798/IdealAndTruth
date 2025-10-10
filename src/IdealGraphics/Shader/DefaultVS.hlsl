@@ -23,13 +23,13 @@ struct VertexOut
 
 VertexOut main(VertexIn vin)
 {
-    matrix wvp = g_world * g_view * g_proj;
-    
 	// 출력
     VertexOut vout;
     
 	// 정점의 뷰포트 좌표
-    vout.PosH = mul(float4(vin.PosL, 1.0f), wvp);
+    vout.PosH = mul(float4(vin.PosL, 1.0f), g_world);
+    vout.PosH = mul(vout.PosH, g_view);
+    vout.PosH = mul(vout.PosH, g_proj);
 
 	// 텍스쳐의 좌표 (texcoord를 그대로 픽셀쉐이더로 넘겨 준다)
     vout.Tex = vin.Tex;

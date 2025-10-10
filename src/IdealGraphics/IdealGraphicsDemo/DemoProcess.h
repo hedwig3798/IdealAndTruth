@@ -31,6 +31,10 @@ private:
 
 	lua_State* m_luaState;
 
+	IRenderer::IRenderObject m_tempObject;
+
+	std::weak_ptr<ICamera> m_camera;
+
 public:
 	// 持失切 社瑚切
 	DemoProcess();

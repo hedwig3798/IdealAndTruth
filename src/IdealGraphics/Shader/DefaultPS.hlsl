@@ -14,6 +14,8 @@ float4 main(VertexOut pin)
 	// 텍스처에서 색상을 샘플링
 	float4 texColor = g_Texture.Sample(g_Sampler, pin.Tex);
     texColor.a = 1.0f;
+    float4 temp = { 1, 1, 1, 1 };
 	
-    return texColor;
+	
+    return temp;
 }

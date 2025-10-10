@@ -14,6 +14,7 @@ Camera::Camera()
 	, m_nearZ(1)
 	, m_farZ(1000)
 	, m_isDirty(true)
+	, m_containerIndex(0)
 {
 
 }
@@ -113,6 +114,12 @@ void Camera::MoveUp(float _val)
 {
 	m_isDirty = true;
 	m_position.y += _val;
+}
+
+void Camera::MoveRight(float _val)
+{
+	m_isDirty = true;
+	m_position += m_right * _val;
 }
 
 void Camera::Move(float _x, float _y, float _z)

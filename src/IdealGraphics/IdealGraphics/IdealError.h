@@ -15,10 +15,11 @@ enum class IdealError
 	CREATE_D3D_DEPTH_STANCIL_FIAL = 10,		// D3D 뎁스 스텐실 생성 실패
 	CREATE_D3D_RASTERIZERSTATE_FIAL = 11,	// D3D 레스터라이저 생성 실패
 	STREAM_ERROR = 12,						// 올바르지 않은 스트림 
-	WORNG_CAMERA = 13,						// 올바르지 않은 카메라
+	WRONG_CAMERA = 13,						// 올바르지 않은 카메라
 	MAPPING_SHADER_BUFFER_FAIL = 14,		// 버퍼를 셰이더에 매핑 실패 
 	CREATE_D3D_BLOB_FAIL = 15,				// D3D blob 객체 생성 실패 
 	CREATE_D3D_INPUT_LAYOUT_FAIL = 16,		// D3D IA 생성 실패 
+	WRONG_TYPE = 17,						// 잘못된 타입 지정
 	UNKNOWN_ERROR,							// 알 수 없는 에러
 	END,
 };

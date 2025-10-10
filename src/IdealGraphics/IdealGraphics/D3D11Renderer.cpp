@@ -14,7 +14,7 @@ D3D11Renderer::D3D11Renderer()
 	, m_featureLevel{}
 	, m_allocators{}
 	, m_defaultBG{ 1, 1, 1, 1 }
-	, m_mainCamera(-1)
+	, m_currentRenderSet()
 {
 
 }
@@ -268,6 +268,8 @@ IE D3D11Renderer::CreateRasterizerState(const InitializeState::RaseterizerState&
 		return IE::CREATE_D3D_RASTERIZERSTATE_FIAL;
 	}
 
+	m_deviceContext->RSSetState(m_rasterizerState.Get());
+
 	return IE::I_OK;
 }
 
@@ -322,8 +324,35 @@ IE D3D11Renderer::CreateCameraBuffer()
 	return IE::I_OK;
 }
 
+IE D3D11Renderer::CreateWorldBuffer()
+{
+	HRESULT hr = S_OK;
+
+	D3D11_BUFFER_DESC mbd = {};
+	mbd.Usage = D3D11_USAGE_DYNAMIC;
+	mbd.ByteWidth = sizeof(WorldBuffer);
+	mbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	mbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	mbd.MiscFlags = 0;
+	mbd.StructureByteStride = 0;
+
+	hr = m_device->CreateBuffer(&mbd, nullptr, m_worldBuffer.GetAddressOf());
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	return IE::I_OK;
+}
+
 IE D3D11Renderer::BindMainCameraBuffer()
 {
+	if (m_mainCamera.expired())
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
 	HRESULT hr = S_OK;
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -341,11 +370,105 @@ IE D3D11Renderer::BindMainCameraBuffer()
 	}
 
 	CameraBuffer* dataptr = (CameraBuffer*)mappedResource.pData;
-	dataptr->m_view = m_cameras[m_mainCamera].GetViewMatrix().Transpose();
-	dataptr->m_proj = m_cameras[m_mainCamera].GetProjMatrix().Transpose();
+	dataptr->m_view = m_mainCamera.lock()->GetViewMatrix().Transpose();
+	dataptr->m_proj = m_mainCamera.lock()->GetProjMatrix().Transpose();
 
 	m_deviceContext->VSSetConstantBuffers(1, 1, m_cameraCBuffer.GetAddressOf());
 	m_deviceContext->Unmap(m_cameraCBuffer.Get(), 0);
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::BindWorldBuffer(const Matrix& _matrix)
+{
+	HRESULT hr = S_OK;
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+
+	hr = m_deviceContext->Map(
+		m_worldBuffer.Get()
+		, 0
+		, D3D11_MAP_WRITE_DISCARD
+		, 0
+		, &mappedResource);
+
+	if (S_OK != hr)
+	{
+		return IE::MAPPING_SHADER_BUFFER_FAIL;
+	}
+
+	WorldBuffer* dataptr = (WorldBuffer*)mappedResource.pData;
+	dataptr->m_world = _matrix.Transpose();
+
+	m_deviceContext->VSSetConstantBuffers(0, 1, m_worldBuffer.GetAddressOf());
+	m_deviceContext->Unmap(m_worldBuffer.Get(), 0);
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::BindVertexShaderAndInputLayout(ComPtr<ID3D11VertexShader> _vs, ComPtr<ID3D11InputLayout> _ia)
+{
+	if (nullptr == m_deviceContext
+		|| nullptr == _ia
+		|| nullptr == _vs)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	if (m_currentRenderSet.m_ia != _ia)
+	{
+		m_deviceContext->IASetInputLayout(_ia.Get());
+	}
+	if (m_currentRenderSet.m_vs != _vs)
+	{
+		m_deviceContext->VSSetShader(_vs.Get(), nullptr, 0);
+	}
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::BindPixelShader(ComPtr<ID3D11PixelShader> _ps)
+{
+	if (nullptr == m_deviceContext
+		|| nullptr == _ps
+		)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	if (m_currentRenderSet.m_ps != _ps)
+	{
+		m_deviceContext->PSSetShader(_ps.Get(), nullptr, 0);
+	}
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::BindVertexBuffer(ComPtr<ID3D11Buffer> _vb, UINT _size)
+{
+	if (nullptr == m_deviceContext
+		|| nullptr == _vb
+		)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	UINT offset = 0;
+	m_deviceContext->IASetVertexBuffers(0, 1, _vb.GetAddressOf(), &_size, &offset);
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::BindIndexBuffer(ComPtr<ID3D11Buffer> _id)
+{
+	if (nullptr == m_deviceContext
+		|| nullptr == _id
+		)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	m_deviceContext->IASetIndexBuffer(_id.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	return IE::I_OK;
 }
@@ -355,10 +478,12 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 	HRESULT hr = S_OK;
 	IE result = IE::I_OK;
 
+	// IA 생성을 위해 필요한 요소
 	D3D11_INPUT_ELEMENT_DESC* decs = nullptr;
 	ComPtr<ID3DBlob> blob;
 	UINT eleNum = 0;
 
+	// 만약 IA 버퍼가 없다면 생성
 	if (0 == m_iaBuffer.size())
 	{
 		m_iaBuffer.resize(static_cast<int>(VERTEX_TYPE::END));
@@ -376,14 +501,9 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 	}
 	std::memcpy(blob->GetBufferPointer(), _stream.data(), _stream.size());
 
+	// 정점 타입에 따라 다르다
 	switch (_type)
 	{
-	case IRenderer::VERTEX_TYPE::VertexSuper:
-	{
-		decs = VertexSuper::m_IADesc;
-		eleNum = 7;
-		break;
-	}
 	case IRenderer::VERTEX_TYPE::VertexP:
 	{
 		decs = VertexP::m_IADesc;
@@ -414,16 +534,23 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 		eleNum = 2;
 		break;
 	}
+	// 타입이 없으면 그냥 슈퍼 타입 지정
 	default:
+	{
+		decs = VertexSuper::m_IADesc;
+		eleNum = 7;
 		break;
 	}
+	}
 
+	// 널 체크
 	if (decs == nullptr
 		|| m_device == nullptr)
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
 
+	// IA 만들기
 	hr = m_device->CreateInputLayout(
 		decs
 		, eleNum
@@ -432,6 +559,7 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 		, m_iaBuffer[static_cast<int>(_type)].GetAddressOf()
 	);
 
+	// IA 체크
 	if (S_OK != hr)
 	{
 		return IE::CREATE_D3D_INPUT_LAYOUT_FAIL;
@@ -446,7 +574,7 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name
 	auto mit = m_vsMap.find(_name);
 	if (mit != m_vsMap.end())
 	{
-		return IE::ALREADY_EXIST;
+		return IE::I_OK;
 	}
 
 	// 널 체크
@@ -459,9 +587,9 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name
 	// 정점 셰이더 객체 생성
 	ComPtr<ID3D11VertexShader> vs;
 	m_device->CreateVertexShader(_stream.data(), _stream.size(), nullptr, vs.GetAddressOf());
-	
+
 	// 맵에 저장
-	m_vsMap[_name] = vs;
+	m_vsMap[_name].first = vs;
 
 	if (0 == m_iaBuffer.size())
 	{
@@ -474,7 +602,13 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name
 
 	if (nullptr == m_iaBuffer[static_cast<int>(_type)])
 	{
-		return CreateInputLayout(_type, _stream);
+		IE result;
+		result = CreateInputLayout(_type, _stream);
+		if (IE::I_OK != result)
+		{
+			return result;
+		}
+		m_vsMap[_name].second = m_iaBuffer[static_cast<int>(_type)];
 	}
 
 	return IE::I_OK;
@@ -486,7 +620,7 @@ IE D3D11Renderer::CreatePixelShader(const std::string& _name, const std::vector<
 	auto mit = m_psMap.find(_name);
 	if (mit != m_psMap.end())
 	{
-		return IE::ALREADY_EXIST;
+		return IE::I_OK;
 	}
 
 	// 널 체크
@@ -502,6 +636,94 @@ IE D3D11Renderer::CreatePixelShader(const std::string& _name, const std::vector<
 
 	// 맵에 저장
 	m_psMap[_name] = ps;
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::CreateVertexIndexBuffer(std::string _name, const std::vector<unsigned char>& _stream)
+{
+	if (m_vBuffer.end() != m_vBuffer.find(_name)
+		&& m_iBuffer.end() != m_iBuffer.find(_name))
+	{
+		return IE::I_OK;
+	}
+
+	HRESULT hr = S_OK;
+
+	UINT offset = 0;
+	int dSize;
+	std::memcpy(&dSize, _stream.data() + offset, sizeof(int));
+	offset += sizeof(int);
+
+	int vSize;
+	std::memcpy(&vSize, _stream.data() + offset, sizeof(int));
+	offset += sizeof(int);
+
+	int iSize;
+	std::memcpy(&iSize, _stream.data() + offset, sizeof(int));
+	offset += sizeof(int);
+
+
+	const unsigned char* vBuffer = _stream.data() + offset;
+	offset += vSize;
+
+	const unsigned char* iBuffer = _stream.data() + offset;
+	offset += iSize;
+
+	D3D11_BUFFER_DESC vb = {};
+	vb.Usage = D3D11_USAGE_IMMUTABLE;
+	vb.ByteWidth = vSize;
+	vb.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vb.CPUAccessFlags = 0;
+	vb.MiscFlags = 0;
+	vb.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA vInitData = {};
+	vInitData.pSysMem = vBuffer;
+
+	hr = m_device->CreateBuffer(
+		&vb
+		, &vInitData
+		, m_vBuffer[_name].first.GetAddressOf()
+	);
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+	m_vBuffer[_name].second = dSize;
+
+
+	D3D11_BUFFER_DESC ib = {};
+	ib.Usage = D3D11_USAGE_IMMUTABLE;
+	ib.ByteWidth = iSize;
+	ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ib.CPUAccessFlags = 0;
+	ib.MiscFlags = 0;
+	ib.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA iInitData = {};
+	iInitData.pSysMem = iBuffer;
+
+	hr = m_device->CreateBuffer(
+		&ib
+		, &iInitData
+		, m_iBuffer[_name].first.GetAddressOf()
+	);
+	m_iBuffer[_name].second = iSize / sizeof(UINT);
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::AddRenderObject(const IRenderObject& _renderObject)
+{
+	// 일단 복사해서 가져오자
+	// 나중에 포인터로 바꿔야할듯?
+	m_renderVector.push_back(_renderObject);
+
 	return IE::I_OK;
 }
 
@@ -556,6 +778,13 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 	// 카메라 버퍼 생성
 	CreateCameraBuffer();
 
+	// 오브젝트의 월드 값을 담을 버퍼
+	CreateWorldBuffer();
+
+	m_renderVector.reserve(_initalizeState.m_renderVectorSize);
+
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	return IE::I_OK;
 }
 
@@ -584,21 +813,21 @@ IE D3D11Renderer::ImportMaterial()
 	return IE::I_OK;
 }
 
-int D3D11Renderer::CreateCamera()
+std::weak_ptr<ICamera> D3D11Renderer::CreateCamera()
 {
-	m_cameras.push_back(Camera());
+	m_cameras.push_back(std::make_shared<Camera>());
+	m_cameras.back()->SetIndex(static_cast<int>(m_cameras.size()) - 1);
 
-	return static_cast<int>(m_cameras.size() - 1);
+	return m_cameras.back();
 }
 
-IE D3D11Renderer::SetCamera(int _cameraID)
+IE D3D11Renderer::SetCamera(std::weak_ptr<ICamera> _cameraID)
 {
-	m_mainCamera = _cameraID;
+	m_mainCamera = std::static_pointer_cast<Camera>(_cameraID.lock());
 
-	if (m_mainCamera >= m_cameras.size()
-		|| m_mainCamera < 0)
+	if (m_mainCamera.expired())
 	{
-		return IE::WORNG_CAMERA;
+		return IE::NULL_POINTER_ACCESS;
 	}
 
 	return IE::I_OK;
@@ -624,23 +853,84 @@ IE D3D11Renderer::Draw()
 	IE result = IE::I_OK;
 
 	// null check
-	if (nullptr == m_swapChain)
+	if (nullptr == m_swapChain
+		|| true == m_mainCamera.expired())
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
 
-	// main camera check
-	if (m_mainCamera >= m_cameras.size()
-		|| m_mainCamera < 0)
-	{
-		return IE::WORNG_CAMERA;
-	}
-
 	// 메인 카메라 행렬 계산
-	if (m_cameras[m_mainCamera].Caculate())
+	if (m_mainCamera.lock()->Caculate())
 	{
 		// 계산을 했다면 바인딩
 		BindMainCameraBuffer();
+	}
+
+	if (false == m_renderVector.empty())
+	{
+		// 렌더링 할 오브젝트 정렬
+		std::sort(m_renderVector.begin(), m_renderVector.end());
+		for (auto& itr : m_renderVector)
+		{
+			// 정렬 된 후 이 이하는 그리지 않는다.
+			if (false == itr.m_isDraw)
+			{
+				break;
+			}
+
+			// 일단 있는거만 가져와서 바인딩 한다.
+			// 아직 텍스쳐는 없음
+
+			// 정점 셰이더 바인딩
+			auto vs = m_vsMap.find(itr.m_vertexShader);
+			if (m_vsMap.end() == vs)
+			{
+				continue;
+			}
+			result = BindVertexShaderAndInputLayout(vs->second.first, vs->second.second);
+			if (IE::I_OK != result)
+			{
+				return result;
+			}
+
+			auto ps = m_psMap.find(itr.m_pixelShader);
+			if (m_psMap.end() == ps)
+			{
+				continue;
+			}
+			BindPixelShader(ps->second);
+			if (IE::I_OK != result)
+			{
+				return result;
+			}
+
+			auto vb = m_vBuffer.find(itr.m_mesh);
+			if (m_vBuffer.end() == vb)
+			{
+				continue;
+			}
+			BindVertexBuffer(vb->second.first, vb->second.second);
+			if (IE::I_OK != result)
+			{
+				return result;
+			}
+
+			auto ib = m_iBuffer.find(itr.m_mesh);
+			if (m_iBuffer.end() == ib)
+			{
+				continue;
+			}
+			BindIndexBuffer(ib->second.first);
+			if (IE::I_OK != result)
+			{
+				return result;
+			}
+
+			// 월드 행렬은 대부분 다르니 걍 바인딩
+			BindWorldBuffer(itr.m_world);
+
+			m_deviceContext->DrawIndexed(ib->second.second, 0, 0);
+		}
 	}
 
 	m_swapChain->Present(0, 0);

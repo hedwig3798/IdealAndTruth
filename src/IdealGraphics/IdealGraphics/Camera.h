@@ -1,5 +1,6 @@
 #pragma once
 #include "DXTK/SimpleMath.h"
+#include "ICamera.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -7,6 +8,7 @@ using namespace DirectX::SimpleMath;
 /// 카메라 정보를 담은 클래스
 /// </summary>
 class Camera
+	: public ICamera
 {
 private:
 	// camera matrix
@@ -33,12 +35,16 @@ private:
 	// when true: need to calcualte matrix
 	bool m_isDirty;
 
+	int m_containerIndex;
+
 public:
 	Camera();
 	virtual ~Camera();
 
 	const Matrix& GetViewMatrix() { return m_view; }
 	const Matrix& GetProjMatrix() { return m_proj; }
+
+	void SetIndex(int _val) { m_containerIndex = _val; };
 
 	/// <summary>
 	/// 행렬 및 벡터 계산
@@ -50,50 +56,55 @@ public:
 	/// z 설정
 	/// </summary>
 	/// <param name="_val"></param>
-	void SetNearZ(float _val);
-	void SetFarZ(float _val);
+	void SetNearZ(float _val) override;
+	void SetFarZ(float _val) override;
 
 	/// <summary>
 	/// fov 설정
 	/// </summary>
 	/// <param name="_val"></param>
-	void SetFOV(float _val);
-	void AddFOV(float _val);
+	void SetFOV(float _val) override;
+	void AddFOV(float _val) override;
 
 	/// <summary>
 	/// 카메라 상하 회전
 	/// </summary>
 	/// <param name="_val">회전 각도 (라디안)</param>
-	void RotateRight(float _val);
+	void RotateRight(float _val) override;
 	/// <summary>
 	/// 카메라 좌우 회전
 	/// </summary>
 	/// <param name="_val">회전 각도 (라디안)</param>
-	void RotateUp(float _val);
+	void RotateUp(float _val) override;
 
 	/// <summary>
 	/// 정면 이동
 	/// </summary>
 	/// <param name="_val">거리</param>
-	void MoveForward(float _val);
-	/// <summary>
+	void MoveForward(float _val) override;
+	/// <summary> 
 	/// 상하 이동
 	/// </summary>
 	/// <param name="_val">거리</param>
-	void MoveUp(float _val);
+	void MoveUp(float _val) override;
+	/// <summary>
+	/// 좌우 이동
+	/// </summary>
+	/// <param name="_val">거리</param>
+	void MoveRight(float _val) override;
 	/// <summary>
 	/// 값 기반 이동
 	/// </summary>
 	/// <param name="_x">x</param>
 	/// <param name="_y">y</param>
 	/// <param name="_z">z</param>
-	void Move(float _x, float _y, float _z);
+	void Move(float _x, float _y, float _z) override;
 	/// <summary>
 	/// 위치 설정
 	/// </summary>
 	/// <param name="_x">x</param>
 	/// <param name="_y">y</param>
 	/// <param name="_z">z</param>
-	void SetPosition(float _x, float _y, float _z);
+	void SetPosition(float _x, float _y, float _z) override;
 };
 

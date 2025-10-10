@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Vertex.h"
+#include "Color.h"
 
 /// <summary>
 /// 1 x 1 Plane
@@ -73,5 +74,29 @@ struct Cube
 		 12,14,13,  12,15,14,     // Left
 		 16,18,17,  16,19,18,     // Top
 		 20,22,21,  20,23,22      // Bottom
+	};
+};
+
+struct Axes
+{
+	VertexPC m_vectex[6]
+	{
+		{ {0.0f, 0.0f, 0.0f}, COLORS::Red  },	// x축 (빨강)
+		{ {10.0f, 0.0f, 0.0f}, COLORS::Red  },
+
+		{ {0.0f, 0.0f, 0.0f}, COLORS::Green},	// y축 (초록)
+		{ {0.0f, 10.0f, 0.0f}, COLORS::Green},
+
+		{ {0.0f, 0.0f, 0.0f}, COLORS::Blue	},	// z축 (파랑)
+		{ {0.0f, 0.0f, 10.0f}, COLORS::Blue }
+	};
+
+	int m_index[6] = {
+		// x축
+		0, 1,
+		// y축
+		2, 3,
+		// z축
+		4, 5,
 	};
 };

@@ -110,7 +110,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd\libssl.lib;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd\libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd\libssl.lib;C:\Program Files\OpenSSL-Win64\lib\VC\x64\MDd\libcrypto.lib;DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\bin\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

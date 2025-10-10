@@ -8,9 +8,11 @@
 
 #include "RenameType.h"
 #include "IdealError.h"
+#include "ICamera.h"
+
 #include "DXTK/SimpleMath.h"
 
-#include <d3d11.h>
+#include <memory>
 #include <vector>
 
 using namespace DirectX::SimpleMath;
@@ -20,10 +22,65 @@ class IRenderer
 public:
 
 	/// <summary>
+	/// 렌더링 오브젝트 정보
+	/// </summary>
+	struct IRenderObject
+	{
+		std::string m_vertexShader;
+		std::string m_pixelShader;
+		std::string m_mesh;
+		std::string m_metrial;
+		Matrix m_world;
+		bool m_isDraw;
+
+		IRenderObject() = default;
+
+		// 정렬 시 복사를 방지하기 위해
+		IRenderObject(const IRenderObject&) = default;
+		IRenderObject& operator=(const IRenderObject&) = default;
+
+		IRenderObject(IRenderObject&&) noexcept = default;
+		IRenderObject& operator=(IRenderObject&&) noexcept = default;
+
+		bool operator<(const IRenderObject& other) const noexcept 
+		{
+			if (m_isDraw != other.m_isDraw)
+			{
+				return m_isDraw;
+			}
+
+			int cmp = m_vertexShader.compare(other.m_vertexShader);
+			if (0 != cmp)
+			{
+				return cmp < 0;
+			}
+			cmp = m_pixelShader.compare(other.m_pixelShader);
+			if (0 != cmp)
+			{
+				return cmp < 0;
+			}
+			cmp = m_metrial.compare(other.m_metrial);
+			if (0 != cmp)
+			{
+				return cmp < 0;
+			}
+			cmp = m_mesh.compare(other.m_mesh);
+			if (0 != cmp)
+			{
+				return cmp < 0;
+			}
+
+			return false;
+		}
+	};
+
+	/// <summary>
 	/// 초기화 스테이트 구조체
 	/// </summary>
 	struct InitializeState
 	{
+		UINT m_renderVectorSize;
+
 		/// <summary>
 		/// 디바이스 플래그
 		/// </summary>
@@ -109,6 +166,14 @@ public:
 		END,
 	};
 
+	enum class GEOMETRY_TYPE
+	{
+		PLANE,
+		CUBE,
+		AXES,
+		END,
+	};
+
 	IRenderer() {};
 	virtual ~IRenderer() {};
 
@@ -152,14 +217,14 @@ public:
 	/// 카메라 오브젝트 생성
 	/// </summary>
 	/// <returns>카메라 ID</returns>
-	virtual int CreateCamera() = 0;
+	virtual std::weak_ptr<ICamera> CreateCamera() = 0;
 
 	/// <summary>
 	/// 메인 카메라 설정
 	/// </summary>
 	/// <param name="_cameraID">카메라 아이디</param>
 	/// <returns>성공 여부 </returns>
-	virtual IE SetCamera(int _cameraID) = 0;
+	virtual IE SetCamera(std::weak_ptr<ICamera> _cameraID) = 0;
 
 	/// <summary>
 	/// 에니메이션 설정
@@ -214,6 +279,21 @@ public:
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
 	virtual IE CreatePixelShader(const std::string&, const std::vector<unsigned char>& _stream) = 0;
+
+	/// <summary>
+	/// 정점 및 인덱스 버퍼 생성
+	/// </summary>
+	/// <param name="_name">매쉬 이름</param>
+	/// <param name="_stream">데이터</param>
+	/// <returns>성공 여부</returns>
+	virtual IE CreateVertexIndexBuffer(std::string _name, const std::vector<unsigned char>& _stream) = 0;
+
+	/// <summary>
+	/// 렌더링 오브젝트 추가
+	/// </summary>
+	/// <param name="_renderObject">렌더링 오브젝트</param>
+	/// <returns>성공 여부</returns>
+	virtual IE AddRenderObject(const IRenderObject& _renderObject) = 0;
 };
 
 /// <summary>

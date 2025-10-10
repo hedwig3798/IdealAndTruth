@@ -19,7 +19,11 @@ DemoProcess::~DemoProcess()
 
 void DemoProcess::Initialize(HWND _hwnd)
 {
-	IE result;
+	if (NULL == _hwnd)
+	{
+		std::cout << "window handler error\n";
+		return;
+	}
 
 	FMSSetting();
 	LuaSetting();
@@ -40,14 +44,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 		, "Renderer Initialize Fail"
 	);
 
-	// result = m_renderer->Initialize(m_rendererState, m_hwnd);
-	// if (IE::I_OK != result)
-	// {
-	// 	return;
-	// }
-
 	IE_ASSERT(
-		m_renderer->SetBackgroundColor(1, 0, 0, 1)
+		m_renderer->SetBackgroundColor(0, 0, 1, 1)
 		, "Set Background Color Fail"
 	);
 
@@ -61,21 +59,36 @@ void DemoProcess::Initialize(HWND _hwnd)
 
 
 	std::vector<unsigned char> tempps;
-	m_fms.OpenFile(L"DefaultVS.cso", tempps);
+	m_fms.OpenFile(L"DefaultPS.cso", tempps);
 	IE_ASSERT(
 		m_renderer->CreatePixelShader("DefaultPS", tempps)
 		, "Cannot Create PixelShader"
 	);
 
 
-	int camera = m_renderer->CreateCamera();
+	m_camera = m_renderer->CreateCamera();
 	IE_ASSERT(
-		m_renderer->SetCamera(camera)
+		m_renderer->SetCamera(m_camera)
 		, "Cannot Set Camera"
+	);
+
+	std::vector<unsigned char> tempVertex;
+	m_fms.OpenFile(L"Cube.iver", tempVertex);
+	IE_ASSERT(
+		m_renderer->CreateVertexIndexBuffer("Cube", tempVertex)
+		, "Cannot Create VertexBuffer"
 	);
 
 	RECT windowSize;
 	GetWindowRect(m_hwnd, &windowSize);
+
+	m_tempObject.m_isDraw = true;
+	m_tempObject.m_mesh = "Cube";
+	m_tempObject.m_vertexShader = "DefaultVS";
+	m_tempObject.m_pixelShader = "DefaultPS";
+	m_tempObject.m_world = Matrix::Identity;
+
+	m_renderer->AddRenderObject(m_tempObject);
 
 	//m_renderer->CreateCamera(
 	//	"default",
@@ -102,25 +115,56 @@ void DemoProcess::Process()
 
 void DemoProcess::Update()
 {
-	// this->m_managers->Update();
-	// 
-	// this->object->Update(this->m_managers->timeManager->GetDT());
-	// CameraUpdate(this->m_managers->timeManager->GetfDT());
-	// this->m_managers->keyManager->mouseDX = 0;
-	// this->m_managers->keyManager->mouseDY = 0;
-	// 
-	// graphicsEngine->GetDT(this->m_managers->timeManager->GetDT());
+	// 임시 카메라 움직임 제어
+
+	if (true == m_camera.expired())
+	{
+		return;
+	}
+
+	// 카메라 이동
+	if (GetAsyncKeyState(VK_UP) & 0x8000)
+	{
+		m_camera.lock()->MoveForward(0.001f);
+	}
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+	{
+		m_camera.lock()->MoveForward(-0.001f);
+	}
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+	{
+		m_camera.lock()->MoveRight(-0.001f);
+	}
+	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+	{
+		m_camera.lock()->MoveRight(0.001f);
+	}
+
+	// 카메라 회전
+	if (GetAsyncKeyState('W') & 0x8000)
+	{
+		m_camera.lock()->RotateUp(0.0001f);
+	}
+	if (GetAsyncKeyState('S') & 0x8000)
+	{
+		m_camera.lock()->RotateUp(-0.0001f);
+	}
+	if (GetAsyncKeyState('D') & 0x8000)
+	{
+		m_camera.lock()->RotateRight(-0.0001f);
+	}
+	if (GetAsyncKeyState('A') & 0x8000)
+	{
+		m_camera.lock()->RotateRight(0.0001f);
+	}
 }
 
 void DemoProcess::Render()
 {
-	IE result;
-	result = m_renderer->Draw();
-	if (IE::I_OK != result)
-	{
-		std::cout << "DrawError : " << static_cast<int>(result) << '\n';
-		return;
-	}
+	IE_ASSERT(
+		m_renderer->Draw()
+		, "Draw Error"
+	);
 
 	// this->graphicsEngine->begineDraw();
 	// this->object->Render(graphicsEngine);
@@ -183,17 +227,20 @@ void DemoProcess::CreateRendererState()
 		return;
 	}
 
+	// 초기 설정 불러오기
 	DO_STREAM(m_luaState, s);
-	GET_LUA_TABLE_NEW(m_luaState, stateTable, "RendererInitializeState");
-	GET_LUA_TABLE_NEW(m_luaState, windowTable, "WindowSetting");
 
+	// 윈도우 설정
+	GET_LUA_TABLE_NEW(m_luaState, windowTable, "WindowSetting");
 	GET_VALUE_NEW(windowTable, width, "Width", int);
 	GET_VALUE_NEW(windowTable, height, "Height", int);
-
 	ResizeWindow(width, height);
 
 	RECT windowSize = {};
 	GetWindowRect(m_hwnd, &windowSize);
+
+	GET_LUA_TABLE_NEW(m_luaState, stateTable, "RendererInitializeState");
+	GET_VALUE(stateTable, m_rendererState.m_renderVectorSize, "RenderVectorSize", int);
 
 	// 디바이스 생성
 	IRenderer::InitializeState::Device deviceState = {};
@@ -366,6 +413,7 @@ LRESULT CALLBACK DemoProcess::WndProc(HWND hWnd, UINT message,
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+
 	//
 	//case WM_LBUTTONDOWN:
 	//	m_staticManagers->keyManager->OnMouseLeftDown(LOWORD(lParam), HIWORD(lParam));
