@@ -73,6 +73,11 @@ void Camera::SetFarZ(float _val)
 	m_farZ = _val;
 }
 
+void Camera::SetAspectRatio(float _val)
+{
+	m_aspectRatio = _val;
+}
+
 void Camera::SetFOV(float _val)
 {
 	if (m_fov == _val)

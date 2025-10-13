@@ -58,8 +58,8 @@ IE D3D11Renderer::CreateSwapChain(const InitializeState::SwapCahin& _swapChain)
 	DXGI_SWAP_CHAIN_DESC chainDesc = {};
 	ZeroMemory(&chainDesc, sizeof(chainDesc));
 
-	chainDesc.BufferDesc.Width = _swapChain.m_width;
-	chainDesc.BufferDesc.Height = _swapChain.m_height;
+	chainDesc.BufferDesc.Width = m_renderWidth;
+	chainDesc.BufferDesc.Height = m_renderHight;
 	chainDesc.BufferDesc.RefreshRate.Numerator = _swapChain.m_refreshRateNumerator;
 	chainDesc.BufferDesc.RefreshRate.Denominator = _swapChain.m_refreshRateDenominator;
 	chainDesc.BufferDesc.Format = (DXGI_FORMAT)_swapChain.m_format;
@@ -183,8 +183,8 @@ IE D3D11Renderer::CreateDepthStencilBufferAndView(const InitializeState::DepthSt
 
 	// 구조체 값 채우기
 	D3D11_TEXTURE2D_DESC depthStancilDesc = {};
-	depthStancilDesc.Width = _depthStancil.m_width;
-	depthStancilDesc.Height = _depthStancil.m_height;
+	depthStancilDesc.Width = m_renderWidth;
+	depthStancilDesc.Height = m_renderHight;
 	depthStancilDesc.MipLevels = _depthStancil.m_mipLevel;
 	depthStancilDesc.ArraySize = _depthStancil.m_arraySize;
 	depthStancilDesc.Format = (DXGI_FORMAT)_depthStancil.m_format;
@@ -228,12 +228,9 @@ IE D3D11Renderer::CreateViewPort()
 		return IE::NULL_POINTER_ACCESS;
 	}
 
-	RECT windowSize = {};
-	GetWindowRect(m_hwnd, &windowSize);
-
 	D3D11_VIEWPORT vp = {};
-	vp.Width = static_cast<FLOAT>(windowSize.right - windowSize.left);
-	vp.Height = static_cast<FLOAT>(windowSize.bottom - windowSize.top);
+	vp.Width = static_cast<float>(m_renderWidth);
+	vp.Height = static_cast<float>(m_renderHight);
 	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	vp.TopLeftX = 0;
@@ -723,6 +720,14 @@ IE D3D11Renderer::AddRenderObject(const IRenderObject& _renderObject)
 	// 일단 복사해서 가져오자
 	// 나중에 포인터로 바꿔야할듯?
 	m_renderVector.push_back(_renderObject);
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::SetRenderSize(UINT _w, UINT _h)
+{
+	m_renderWidth = _w;
+	m_renderHight = _h;
 
 	return IE::I_OK;
 }

@@ -91,6 +91,8 @@ private:
 
 	ComPtr<ID3D11Buffer> m_worldBuffer;
 
+	UINT m_renderWidth;
+	UINT m_renderHight;
 
 public:
 	D3D11Renderer();
@@ -331,5 +333,13 @@ public:
 	IE CreateVertexIndexBuffer(std::string _name, const std::vector<unsigned char>& _stream);
 
 	IE AddRenderObject(const IRenderObject& _renderObject);
+
+	/// <summary>
+	/// 렌더 영역 설정
+	/// </summary>
+	/// <param name="_w">높이</param>
+	/// <param name="_h">너비</param>
+	/// <returns>성공 여부</returns>
+	virtual IE SetRenderSize(UINT _w, UINT _h) override;
 };
 

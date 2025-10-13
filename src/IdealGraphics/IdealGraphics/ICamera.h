@@ -18,6 +18,12 @@ public:
 	virtual void AddFOV(float _val) = 0;
 
 	/// <summary>
+	/// 종횡비 설정
+	/// </summary>
+	/// <param name="_val">값</param>
+	virtual void SetAspectRatio(float _val) = 0;
+
+	/// <summary>
 	/// 카메라 상하 회전
 	/// </summary>
 	/// <param name="_val">회전 각도 (라디안)</param>

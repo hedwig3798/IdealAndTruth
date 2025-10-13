@@ -35,6 +35,9 @@ private:
 
 	std::weak_ptr<ICamera> m_camera;
 
+	UINT m_renderWidth;
+	UINT m_renderHight;
+
 public:
 	// 持失切 社瑚切
 	DemoProcess();

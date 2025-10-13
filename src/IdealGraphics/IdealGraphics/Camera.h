@@ -60,6 +60,12 @@ public:
 	void SetFarZ(float _val) override;
 
 	/// <summary>
+	/// 종횡비 설정
+	/// </summary>
+	/// <param name="_val">값</param>
+	void SetAspectRatio(float _val) override;
+
+	/// <summary>
 	/// fov 설정
 	/// </summary>
 	/// <param name="_val"></param>

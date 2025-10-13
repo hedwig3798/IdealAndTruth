@@ -294,6 +294,14 @@ public:
 	/// <param name="_renderObject">렌더링 오브젝트</param>
 	/// <returns>성공 여부</returns>
 	virtual IE AddRenderObject(const IRenderObject& _renderObject) = 0;
+
+	/// <summary>
+	/// 렌더 영역 설정
+	/// </summary>
+	/// <param name="_w">높이</param>
+	/// <param name="_h">너비</param>
+	/// <returns>성공 여부</returns>
+	virtual IE SetRenderSize(UINT _w, UINT _h) = 0;
 };
 
 /// <summary>

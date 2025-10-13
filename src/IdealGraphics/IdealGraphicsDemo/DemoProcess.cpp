@@ -39,6 +39,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 	}
 	m_renderer = ((IRenderer * (*)())GetProcAddress(m_rendererDll, "CreateD3D11Renderer"))();
 
+	m_renderer->SetRenderSize(m_renderWidth, m_renderHight);
+
 	IE_ASSERT(
 		m_renderer->Initialize(m_rendererState, m_hwnd)
 		, "Renderer Initialize Fail"
@@ -72,15 +74,14 @@ void DemoProcess::Initialize(HWND _hwnd)
 		, "Cannot Set Camera"
 	);
 
+	m_camera.lock()->SetAspectRatio(static_cast<float>(m_renderWidth) / static_cast<float>(m_renderHight));
+
 	std::vector<unsigned char> tempVertex;
 	m_fms.OpenFile(L"Cube.iver", tempVertex);
 	IE_ASSERT(
 		m_renderer->CreateVertexIndexBuffer("Cube", tempVertex)
 		, "Cannot Create VertexBuffer"
 	);
-
-	RECT windowSize;
-	GetWindowRect(m_hwnd, &windowSize);
 
 	m_tempObject.m_isDraw = true;
 	m_tempObject.m_mesh = "Cube";
@@ -236,8 +237,8 @@ void DemoProcess::CreateRendererState()
 	GET_VALUE_NEW(windowTable, height, "Height", int);
 	ResizeWindow(width, height);
 
-	RECT windowSize = {};
-	GetWindowRect(m_hwnd, &windowSize);
+	m_renderWidth = width;
+	m_renderHight = height;
 
 	GET_LUA_TABLE_NEW(m_luaState, stateTable, "RendererInitializeState");
 	GET_VALUE(stateTable, m_rendererState.m_renderVectorSize, "RenderVectorSize", int);
@@ -257,8 +258,8 @@ void DemoProcess::CreateRendererState()
 	IRenderer::InitializeState::DepthStancil depthState = {};
 	GET_VALUE_NEW(stateTable, depthStancil, "DepthStancil", lua_tinker::table);
 
-	depthState.m_width = windowSize.right - windowSize.left;
-	depthState.m_height = windowSize.bottom - windowSize.top;
+	depthState.m_width = width;
+	depthState.m_height = height;
 	GET_VALUE(depthStancil, depthState.m_mipLevel, "mipLevel", UINT);
 	GET_VALUE(depthStancil, depthState.m_arraySize, "arraySize", UINT);
 	GET_VALUE(depthStancil, depthState.m_format, "format", UINT);
@@ -271,8 +272,8 @@ void DemoProcess::CreateRendererState()
 	IRenderer::InitializeState::SwapCahin swapState = {};
 	GET_VALUE_NEW(stateTable, swapCahin, "SwapCahin", lua_tinker::table);
 
-	swapState.m_width = windowSize.right - windowSize.left;
-	swapState.m_height = windowSize.bottom - windowSize.top;
+	swapState.m_width = width;
+	swapState.m_height = height;
 	GET_VALUE(swapCahin, swapState.m_refreshRateNumerator, "refreshRateNumerator", UINT);
 	GET_VALUE(swapCahin, swapState.m_refreshRateDenominator, "refreshRateDenominator", UINT);
 	GET_VALUE(swapCahin, swapState.m_format, "format", UINT);
@@ -298,8 +299,8 @@ void DemoProcess::CreateRendererState()
 	IRenderer::InitializeState::RenderTargetViewState renderState = {};
 	GET_VALUE_NEW(stateTable, renderTarget, "RenderTargetViewState", lua_tinker::table);
 
-	renderState.m_width = windowSize.right - windowSize.left;
-	renderState.m_height = windowSize.bottom - windowSize.top;
+	renderState.m_width = width;
+	renderState.m_height = height;
 	GET_VALUE(renderTarget, renderState.m_mipLevel, "mipLevel", UINT);
 	GET_VALUE(renderTarget, renderState.m_arraySize, "arraySize", UINT);
 	GET_VALUE(renderTarget, renderState.m_format, "format", UINT);
