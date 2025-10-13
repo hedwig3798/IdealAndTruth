@@ -65,9 +65,24 @@ private:
 	/// </summary>
 	void FMSSetting();
 
+	/// <summary>
+	/// Lua Setting
+	/// </summary>
 	void LuaSetting();
 
+	/// <summary>
+	/// DirectX Setting
+	/// </summary>
 	void D3DSetting();
 
+	/// <summary>
+	/// 윈도우 크기 조정
+	/// 지금은 시작 시에만 적용
+	/// 나중에 크기 조정 시에 렌더러에 정보 주는거 만들 예정
+	/// </summary>
+	/// <param name="_width">너비</param>
+	/// <param name="_hight">높이</param>
 	void ResizeWindow(int _width, int _hight);
+	
+	void CreateTexuerTemplate(const std::wstring& _path);
 };

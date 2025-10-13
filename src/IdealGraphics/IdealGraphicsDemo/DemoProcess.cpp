@@ -51,7 +51,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 		, "Set Background Color Fail"
 	);
 
-	std::vector<unsigned char> tempvs;
+	FILE_STREAM tempvs;
 	m_fms.OpenFile(L"DefaultVS.cso", tempvs);
 
 	IE_ASSERT(
@@ -60,13 +60,12 @@ void DemoProcess::Initialize(HWND _hwnd)
 	);
 
 
-	std::vector<unsigned char> tempps;
+	FILE_STREAM tempps;
 	m_fms.OpenFile(L"DefaultPS.cso", tempps);
 	IE_ASSERT(
 		m_renderer->CreatePixelShader("DefaultPS", tempps)
 		, "Cannot Create PixelShader"
 	);
-
 
 	m_camera = m_renderer->CreateCamera();
 	IE_ASSERT(
@@ -90,6 +89,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 	m_tempObject.m_world = Matrix::Identity;
 
 	m_renderer->AddRenderObject(m_tempObject);
+
+	CreateTexuerTemplate(L"BoxMaterial.lua");
 
 	//m_renderer->CreateCamera(
 	//	"default",
@@ -398,8 +399,30 @@ void DemoProcess::ResizeWindow(int _width, int _hight)
 	);
 }
 
-LRESULT CALLBACK DemoProcess::WndProc(HWND hWnd, UINT message,
-	WPARAM wParam, LPARAM lParam)
+void DemoProcess::CreateTexuerTemplate(const std::wstring& _path)
+{
+	FILE_STREAM s;
+	m_fms.OpenFile(_path, s);
+	if (true == s.empty())
+	{
+		return;
+	}
+
+	// 텍스쳐 정보 가져오기
+	DO_STREAM(m_luaState, s);
+
+	GET_LUA_TABLE_NEW(m_luaState, textuers, "Textuers");
+	GET_VALUE_NEW(textuers, albedo, "albedo", std::string);
+
+	return;
+}
+
+LRESULT CALLBACK DemoProcess::WndProc(
+	HWND hWnd, 
+	UINT message, 
+	WPARAM wParam, 
+	LPARAM lParam
+)
 {
 	// HDC			hdc;
 	// PAINTSTRUCT ps;

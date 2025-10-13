@@ -565,7 +565,7 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, const std::vector<unsigned char>& _stream)
+IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, CONST_FILE_STREAM& _stream)
 {
 	// 같은 이름의 셰이더가 있다면 무시힌다.
 	auto mit = m_vsMap.find(_name);
@@ -611,7 +611,7 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreatePixelShader(const std::string& _name, const std::vector<unsigned char>& _stream)
+IE D3D11Renderer::CreatePixelShader(const std::string& _name, CONST_FILE_STREAM& _stream)
 {
 	// 같은 이름의 셰이더가 있다면 무시힌다.
 	auto mit = m_psMap.find(_name);
@@ -636,7 +636,7 @@ IE D3D11Renderer::CreatePixelShader(const std::string& _name, const std::vector<
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateVertexIndexBuffer(std::string _name, const std::vector<unsigned char>& _stream)
+IE D3D11Renderer::CreateVertexIndexBuffer(std::string _name, CONST_FILE_STREAM& _stream)
 {
 	if (m_vBuffer.end() != m_vBuffer.find(_name)
 		&& m_iBuffer.end() != m_iBuffer.find(_name))
@@ -808,7 +808,7 @@ IE D3D11Renderer::ImportAnimation()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::ImportTexture()
+IE D3D11Renderer::CreateTexture()
 {
 	return IE::I_OK;
 }

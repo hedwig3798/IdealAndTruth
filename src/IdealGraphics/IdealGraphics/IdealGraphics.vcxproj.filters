@@ -19,14 +19,11 @@
     <Filter Include="Camera">
       <UniqueIdentifier>{fd9057af-1cd4-43db-8e73-509af45b75ca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="SimpleMath">
-      <UniqueIdentifier>{6fcb4596-0ede-4666-90af-5573d5889a89}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="customMap">
-      <UniqueIdentifier>{dceb4fd9-3a31-4963-b436-9493a88de712}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Color">
       <UniqueIdentifier>{448c7d7a-6199-4d5a-9082-64d04e63bf77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Material">
+      <UniqueIdentifier>{03621efc-e3f4-461b-b661-26697d569dd4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +56,9 @@
     </ClInclude>
     <ClInclude Include="ICamera.h">
       <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

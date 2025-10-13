@@ -241,7 +241,7 @@ public:
 	/// 텍스쳐 임포트
 	/// </summary>
 	/// <returns>텍스쳐 UID</returns>
-	IE ImportTexture() override;
+	IE CreateTexture() override;
 
 	/// <summary>
 	/// 머테리얼 임포트
@@ -314,7 +314,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	IE CreateVertexShader(VERTEX_TYPE _type, const std::string&, const std::vector<unsigned char>& _stream) override;
+	IE CreateVertexShader(VERTEX_TYPE _type, const std::string&, CONST_FILE_STREAM& _stream) override;
 
 	/// <summary>
 	/// 픽셀 셰이더 생성
@@ -322,7 +322,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	IE CreatePixelShader(const std::string&, const std::vector<unsigned char>& _stream) override;
+	IE CreatePixelShader(const std::string&, CONST_FILE_STREAM& _stream) override;
 
 	/// <summary>
 	/// 정점 및 인덱스 버퍼 생성
@@ -330,7 +330,7 @@ public:
 	/// <param name="_name">매쉬 이름</param>
 	/// <param name="_stream">데이터</param>
 	/// <returns>성공 여부</returns>
-	IE CreateVertexIndexBuffer(std::string _name, const std::vector<unsigned char>& _stream);
+	IE CreateVertexIndexBuffer(std::string _name, CONST_FILE_STREAM& _stream);
 
 	IE AddRenderObject(const IRenderObject& _renderObject);
 

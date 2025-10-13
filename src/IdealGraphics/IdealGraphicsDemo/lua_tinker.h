@@ -1001,6 +1001,18 @@ namespace lua_tinker
 			return m_obj->get<T>(name);
 		}
 
+		template<>
+		std::string get(const char* name)
+		{
+			const char* result = m_obj->get<const char*>(name);
+			if (nullptr == result)
+			{
+				return std::string();
+			}
+
+			return std::string(result);
+		}
+
 		template<typename T>
 		T get(int index)
 		{

@@ -17,6 +17,9 @@
 
 using namespace DirectX::SimpleMath;
 
+typedef const std::vector<unsigned char> CONST_FILE_STREAM;
+typedef std::vector<unsigned char> FILE_STREAM;
+
 class IRenderer
 {
 public:
@@ -155,6 +158,17 @@ public:
 		} m_renderTargetView;
 	};
 
+	/// <summary>
+	/// 머테리얼 구조체
+	/// 필요한 내용을 하나씩 추가 할 예정
+	/// </summary>
+	struct Material
+	{
+		Vector4 m_color;
+		std::string m_albedo;
+		std::string m_normal;
+	};
+
 	enum class VERTEX_TYPE
 	{
 		VertexSuper,
@@ -205,7 +219,7 @@ public:
 	/// 텍스쳐 데이터 임포트
 	/// </summary>
 	/// <returns>오브젝트 GUID</returns>
-	virtual IE ImportTexture() = 0;
+	virtual IE CreateTexture() = 0;
 
 	/// <summary>
 	/// 머테리얼 데이터 임포트
@@ -270,7 +284,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, const std::vector<unsigned char>& _stream) = 0;
+	virtual IE CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, CONST_FILE_STREAM& _stream) = 0;
 
 	/// <summary>
 	/// 픽셀 셰이더 생성
@@ -278,7 +292,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreatePixelShader(const std::string&, const std::vector<unsigned char>& _stream) = 0;
+	virtual IE CreatePixelShader(const std::string&, CONST_FILE_STREAM& _stream) = 0;
 
 	/// <summary>
 	/// 정점 및 인덱스 버퍼 생성
@@ -286,7 +300,7 @@ public:
 	/// <param name="_name">매쉬 이름</param>
 	/// <param name="_stream">데이터</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreateVertexIndexBuffer(std::string _name, const std::vector<unsigned char>& _stream) = 0;
+	virtual IE CreateVertexIndexBuffer(std::string _name, CONST_FILE_STREAM& _stream) = 0;
 
 	/// <summary>
 	/// 렌더링 오브젝트 추가
