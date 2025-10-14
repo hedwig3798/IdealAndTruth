@@ -23,6 +23,24 @@ typedef std::vector<unsigned char> FILE_STREAM;
 class IRenderer
 {
 public:
+	/// <summary>
+	/// 텍스쳐를 만들기 위해 필요한 데이터를 담은 구조체
+	/// </summary>
+	struct TextuerData
+	{
+		std::string m_name;
+		CONST_FILE_STREAM& m_data;
+	};
+	
+	/// <summary>
+	/// 머테리얼을 만들기 위해 필요한 데이터를 담은 구조체
+	/// 필요한 내용을 하나씩 추가 할 예정
+	/// </summary>
+	struct MaterialData
+	{
+		Vector4 m_color;
+		TextuerData& m_albedo;
+	};
 
 	/// <summary>
 	/// 렌더링 오브젝트 정보
@@ -32,7 +50,7 @@ public:
 		std::string m_vertexShader;
 		std::string m_pixelShader;
 		std::string m_mesh;
-		std::string m_metrial;
+		std::string m_material;
 		Matrix m_world;
 		bool m_isDraw;
 
@@ -62,7 +80,7 @@ public:
 			{
 				return cmp < 0;
 			}
-			cmp = m_metrial.compare(other.m_metrial);
+			cmp = m_material.compare(other.m_material);
 			if (0 != cmp)
 			{
 				return cmp < 0;
@@ -158,16 +176,7 @@ public:
 		} m_renderTargetView;
 	};
 
-	/// <summary>
-	/// 머테리얼 구조체
-	/// 필요한 내용을 하나씩 추가 할 예정
-	/// </summary>
-	struct Material
-	{
-		Vector4 m_color;
-		std::string m_albedo;
-		std::string m_normal;
-	};
+
 
 	enum class VERTEX_TYPE
 	{
@@ -187,6 +196,8 @@ public:
 		AXES,
 		END,
 	};
+
+
 
 	IRenderer() {};
 	virtual ~IRenderer() {};
@@ -225,7 +236,7 @@ public:
 	/// 머테리얼 데이터 임포트
 	/// </summary>
 	/// <returns>오브젝트 GUID</returns>
-	virtual IE ImportMaterial() = 0;
+	virtual IE CreateMaterial(const std::string _name, const MaterialData& _material) = 0;
 
 	/// <summary>
 	/// 카메라 오브젝트 생성

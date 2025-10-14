@@ -17,5 +17,5 @@ float4 main(VertexOut pin)
     float4 temp = { 1, 1, 1, 1 };
 	
 	
-    return temp;
+    return texColor;
 }

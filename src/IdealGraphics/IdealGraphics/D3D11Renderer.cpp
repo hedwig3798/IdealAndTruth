@@ -813,8 +813,42 @@ IE D3D11Renderer::CreateTexture()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::ImportMaterial()
+IE D3D11Renderer::CreateMaterial(const std::string _name, const MaterialData& _material)
 {
+	if (nullptr == m_device)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+	
+	if (m_materialMap.end() != m_materialMap.find(_name))
+	{
+		return IE::I_OK;
+	}
+
+	HRESULT hr = S_OK;
+
+	std::string format = _name.substr(_name.length() - 3, _name.length());
+	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
+
+	ComPtr<ID3D11ShaderResourceView> albedoSrv;
+
+	hr = DirectX::CreateDDSTextureFromMemory(
+		m_device.Get()
+		, reinterpret_cast<const uint8_t*>(_material.m_albedo.m_data.data())
+		, _material.m_albedo.m_data.size()
+		, nullptr
+		, albedoSrv.GetAddressOf()
+	);
+
+	if (false == SUCCEEDED(hr))
+	{
+		return IE::CREATE_D3D_TEXTURE_FAIL;
+	}
+
+	m_textuerMap[_material.m_albedo.m_name] = albedoSrv;
+
+	m_materialMap[_name].m_albedo = albedoSrv;
+
 	return IE::I_OK;
 }
 
@@ -908,6 +942,9 @@ IE D3D11Renderer::Draw()
 			{
 				return result;
 			}
+
+			const Material& mat = m_materialMap.find(itr.m_material)->second;
+			m_deviceContext->PSSetShaderResources(0, 1, mat.m_albedo.GetAddressOf());
 
 			auto vb = m_vBuffer.find(itr.m_mesh);
 			if (m_vBuffer.end() == vb)

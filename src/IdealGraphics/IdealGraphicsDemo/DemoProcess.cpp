@@ -47,7 +47,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 	);
 
 	IE_ASSERT(
-		m_renderer->SetBackgroundColor(0, 0, 1, 1)
+		m_renderer->SetBackgroundColor(0, 0, 0, 1)
 		, "Set Background Color Fail"
 	);
 
@@ -82,15 +82,16 @@ void DemoProcess::Initialize(HWND _hwnd)
 		, "Cannot Create VertexBuffer"
 	);
 
+	CreateMaterial(L"BoxMaterial.lua");
+
 	m_tempObject.m_isDraw = true;
 	m_tempObject.m_mesh = "Cube";
 	m_tempObject.m_vertexShader = "DefaultVS";
 	m_tempObject.m_pixelShader = "DefaultPS";
 	m_tempObject.m_world = Matrix::Identity;
+	m_tempObject.m_material = "BoxMaterial.lua";
 
 	m_renderer->AddRenderObject(m_tempObject);
-
-	CreateTexuerTemplate(L"BoxMaterial.lua");
 
 	//m_renderer->CreateCamera(
 	//	"default",
@@ -145,19 +146,19 @@ void DemoProcess::Update()
 	// 카메라 회전
 	if (GetAsyncKeyState('W') & 0x8000)
 	{
-		m_camera.lock()->RotateUp(0.0001f);
+		m_camera.lock()->RotateUp(0.0002f);
 	}
 	if (GetAsyncKeyState('S') & 0x8000)
 	{
-		m_camera.lock()->RotateUp(-0.0001f);
+		m_camera.lock()->RotateUp(-0.0002f);
 	}
 	if (GetAsyncKeyState('D') & 0x8000)
 	{
-		m_camera.lock()->RotateRight(-0.0001f);
+		m_camera.lock()->RotateRight(-0.0002f);
 	}
 	if (GetAsyncKeyState('A') & 0x8000)
 	{
-		m_camera.lock()->RotateRight(0.0001f);
+		m_camera.lock()->RotateRight(0.0002f);
 	}
 }
 
@@ -399,8 +400,13 @@ void DemoProcess::ResizeWindow(int _width, int _hight)
 	);
 }
 
-void DemoProcess::CreateTexuerTemplate(const std::wstring& _path)
+void DemoProcess::CreateMaterial(const std::wstring& _path)
 {
+	if (nullptr == m_renderer)
+	{
+		return;
+	}
+
 	FILE_STREAM s;
 	m_fms.OpenFile(_path, s);
 	if (true == s.empty())
@@ -411,8 +417,18 @@ void DemoProcess::CreateTexuerTemplate(const std::wstring& _path)
 	// 텍스쳐 정보 가져오기
 	DO_STREAM(m_luaState, s);
 
+	FILE_STREAM albedoStream = FILE_STREAM();
 	GET_LUA_TABLE_NEW(m_luaState, textuers, "Textuers");
 	GET_VALUE_NEW(textuers, albedo, "albedo", std::string);
+	if (0 != albedo.size())
+	{
+		m_fms.OpenFile(::StrToWstr(albedo), albedoStream);
+	}
+	IRenderer::TextuerData albetotextuer{ albedo, albedoStream };
+
+	IRenderer::MaterialData material{ {0,0,0,0},  albetotextuer };
+
+	m_renderer->CreateMaterial(::WstrToStr(_path), material);
 
 	return;
 }

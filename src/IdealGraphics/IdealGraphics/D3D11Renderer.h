@@ -12,7 +12,7 @@
 #include "CustomAllocator/IAllocator.h"
 #include "Camera.h"
 #include "Vertex.h"
-
+#include "DXTK/DDSTextureLoader.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -20,6 +20,12 @@ class D3D11Renderer :
 	public IRenderer
 {
 private:
+
+	struct Material
+	{
+		ComPtr<ID3D11ShaderResourceView> m_albedo;
+	};
+
 	struct CurrentReder
 	{
 		ComPtr<ID3D11VertexShader> m_vs = nullptr;
@@ -64,7 +70,9 @@ private:
 	std::unordered_map<std::string, std::pair<ComPtr<ID3D11Buffer>, UINT>> m_iBuffer;
 
 	// texture map
-	std::unordered_map<std::string, ComPtr<ID3D11ShaderResourceView>> m_tBuffer;
+	std::unordered_map<std::string, ComPtr<ID3D11ShaderResourceView>> m_textuerMap;
+
+	std::unordered_map<std::string, Material> m_materialMap;
 
 	// input layout buffer
 	std::vector<ComPtr<ID3D11InputLayout>> m_iaBuffer;
@@ -247,7 +255,7 @@ public:
 	/// 머테리얼 임포트
 	/// </summary>
 	/// <returns>머테리얼 UID</returns>
-	IE ImportMaterial() override;
+	IE CreateMaterial(const std::string _name, const MaterialData& _material) override;
 
 	/// <summary>
 	/// 카메라 생성

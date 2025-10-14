@@ -84,5 +84,9 @@ private:
 	/// <param name="_hight">높이</param>
 	void ResizeWindow(int _width, int _hight);
 	
-	void CreateTexuerTemplate(const std::wstring& _path);
+	/// <summary>
+	/// 머테리얼의 탬플릿 데이터를 생성한다.
+	/// </summary>
+	/// <param name="_path">lua 경로</param>
+	void CreateMaterial(const std::wstring& _path);
 };
