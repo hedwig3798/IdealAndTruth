@@ -23,7 +23,6 @@ private:
 	IRenderer* m_renderer;
 	HMODULE m_rendererDll;
 	ManagerSet* m_managers;
-	static ManagerSet* m_staticManagers;
 
 	IRenderer::InitializeState m_rendererState;
 
@@ -38,6 +37,12 @@ private:
 	UINT m_renderWidth;
 	UINT m_renderHight;
 
+	// 임시 마우스 변수
+	static bool m_mouseDown[2];
+	static int m_currMouseMove[2];
+	static int m_oldMouseMove[2];
+	static int m_mouseMovement[2];
+	
 public:
 	// 생성자 소멸자
 	DemoProcess();
@@ -56,7 +61,6 @@ private:
 	// 실제 수행되는 함수
 	void Update();
 	void Render();
-	void CameraUpdate(float _dt);
 
 	void CreateRendererState();
 
