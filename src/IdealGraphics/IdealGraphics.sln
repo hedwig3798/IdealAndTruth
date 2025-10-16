@@ -13,12 +13,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IdealGraphicsDemo", "IdealG
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shader", "Shader\Shader.vcxproj", "{410272FD-9BD5-42AB-93AB-34D974F1FA61}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MeshExpoter", "MeshExpoter\MeshExpoter.vcxproj", "{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelConverter", "ModelConverter\ModelConverter.vcxproj", "{0B79891B-6609-8BE3-FF28-5EA403DC2915}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		MeshConvert|x64 = MeshConvert|x64
+		MeshConvert|x86 = MeshConvert|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -27,6 +29,9 @@ Global
 		{95903C75-25D4-40D3-BD79-506A6D015824}.Debug|x64.Build.0 = Debug|x64
 		{95903C75-25D4-40D3-BD79-506A6D015824}.Debug|x86.ActiveCfg = Debug|Win32
 		{95903C75-25D4-40D3-BD79-506A6D015824}.Debug|x86.Build.0 = Debug|Win32
+		{95903C75-25D4-40D3-BD79-506A6D015824}.MeshConvert|x64.ActiveCfg = MeshConvert|x64
+		{95903C75-25D4-40D3-BD79-506A6D015824}.MeshConvert|x86.ActiveCfg = MeshConvert|Win32
+		{95903C75-25D4-40D3-BD79-506A6D015824}.MeshConvert|x86.Build.0 = MeshConvert|Win32
 		{95903C75-25D4-40D3-BD79-506A6D015824}.Release|x64.ActiveCfg = Release|x64
 		{95903C75-25D4-40D3-BD79-506A6D015824}.Release|x64.Build.0 = Release|x64
 		{95903C75-25D4-40D3-BD79-506A6D015824}.Release|x86.ActiveCfg = Release|Win32
@@ -35,6 +40,9 @@ Global
 		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.Debug|x64.Build.0 = Debug|x64
 		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.Debug|x86.ActiveCfg = Debug|Win32
 		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.Debug|x86.Build.0 = Debug|Win32
+		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.MeshConvert|x64.ActiveCfg = MeshConvert|x64
+		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.MeshConvert|x86.ActiveCfg = MeshConvert|Win32
+		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.MeshConvert|x86.Build.0 = MeshConvert|Win32
 		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.Release|x64.ActiveCfg = Release|x64
 		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.Release|x64.Build.0 = Release|x64
 		{D236DDCA-6FA2-4F80-9F55-26A8E992034F}.Release|x86.ActiveCfg = Release|Win32
@@ -43,18 +51,25 @@ Global
 		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.Debug|x64.Build.0 = Debug|x64
 		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.Debug|x86.ActiveCfg = Debug|Win32
 		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.Debug|x86.Build.0 = Debug|Win32
+		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.MeshConvert|x64.ActiveCfg = MeshConvert|x64
+		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.MeshConvert|x86.ActiveCfg = MeshConvert|Win32
+		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.MeshConvert|x86.Build.0 = MeshConvert|Win32
 		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.Release|x64.ActiveCfg = Release|x64
 		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.Release|x64.Build.0 = Release|x64
 		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.Release|x86.ActiveCfg = Release|Win32
 		{410272FD-9BD5-42AB-93AB-34D974F1FA61}.Release|x86.Build.0 = Release|Win32
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Debug|x64.ActiveCfg = Debug|x64
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Debug|x64.Build.0 = Debug|x64
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Debug|x86.ActiveCfg = Debug|Win32
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Debug|x86.Build.0 = Debug|Win32
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Release|x64.ActiveCfg = Release|x64
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Release|x64.Build.0 = Release|x64
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Release|x86.ActiveCfg = Release|Win32
-		{BE5E2FB4-0D06-4569-B3B6-1C5D2E554383}.Release|x86.Build.0 = Release|Win32
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Debug|x64.ActiveCfg = Debug|x64
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Debug|x64.Build.0 = Debug|x64
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Debug|x86.ActiveCfg = Debug|Win32
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Debug|x86.Build.0 = Debug|Win32
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.MeshConvert|x64.ActiveCfg = Debug|x64
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.MeshConvert|x64.Build.0 = Debug|x64
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.MeshConvert|x86.ActiveCfg = Debug|Win32
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.MeshConvert|x86.Build.0 = Debug|Win32
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Release|x64.ActiveCfg = Release|x64
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Release|x64.Build.0 = Release|x64
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Release|x86.ActiveCfg = Release|Win32
+		{0B79891B-6609-8BE3-FF28-5EA403DC2915}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
