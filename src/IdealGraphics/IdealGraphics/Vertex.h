@@ -55,8 +55,8 @@ struct VertexPN
 struct VertexPUN
 {
 	Vector3 m_position;
-	Vector2 m_uv;
 	Vector3 m_normal;
+	Vector2 m_uv;
 	static D3D11_INPUT_ELEMENT_DESC m_IADesc[3];
 };
 typedef VertexPUN DVertex;

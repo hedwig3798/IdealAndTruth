@@ -636,90 +636,150 @@ IE D3D11Renderer::CreatePixelShader(const std::string& _name, CONST_FILE_STREAM&
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateVertexIndexBuffer(std::string _name, CONST_FILE_STREAM& _stream)
+IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::string& _name)
 {
-	if (m_vBuffer.end() != m_vBuffer.find(_name)
-		&& m_iBuffer.end() != m_iBuffer.find(_name))
-	{
-		return IE::I_OK;
-	}
-
 	HRESULT hr = S_OK;
 
-	UINT offset = 0;
-	int dSize;
-	std::memcpy(&dSize, _stream.data() + offset, sizeof(int));
-	offset += sizeof(int);
+	uint64_t offset = 0;
 
-	int vSize;
-	std::memcpy(&vSize, _stream.data() + offset, sizeof(int));
-	offset += sizeof(int);
-
-	int iSize;
-	std::memcpy(&iSize, _stream.data() + offset, sizeof(int));
-	offset += sizeof(int);
-
-
-	const unsigned char* vBuffer = _stream.data() + offset;
-	offset += vSize;
-
-	const unsigned char* iBuffer = _stream.data() + offset;
-	offset += iSize;
-
-	D3D11_BUFFER_DESC vb = {};
-	vb.Usage = D3D11_USAGE_IMMUTABLE;
-	vb.ByteWidth = vSize;
-	vb.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vb.CPUAccessFlags = 0;
-	vb.MiscFlags = 0;
-	vb.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA vInitData = {};
-	vInitData.pSysMem = vBuffer;
-
-	hr = m_device->CreateBuffer(
-		&vb
-		, &vInitData
-		, m_vBuffer[_name].first.GetAddressOf()
-	);
-	if (S_OK != hr)
+	// 매쉬 갯수
+	uint64_t meshCount;
+	if (offset + sizeof(uint64_t) > _stream.size())
 	{
-		return IE::CREATE_D3D_BUFFER_FAIL;
+		return IE::OUT_OF_POINTER_BOUNDARY;
 	}
-	m_vBuffer[_name].second = dSize;
+	std::memcpy(&meshCount, _stream.data() + offset, sizeof(uint64_t));
+	offset += sizeof(uint64_t);
 
-
-	D3D11_BUFFER_DESC ib = {};
-	ib.Usage = D3D11_USAGE_IMMUTABLE;
-	ib.ByteWidth = iSize;
-	ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ib.CPUAccessFlags = 0;
-	ib.MiscFlags = 0;
-	ib.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA iInitData = {};
-	iInitData.pSysMem = iBuffer;
-
-	hr = m_device->CreateBuffer(
-		&ib
-		, &iInitData
-		, m_iBuffer[_name].first.GetAddressOf()
-	);
-	m_iBuffer[_name].second = iSize / sizeof(UINT);
-
-	if (S_OK != hr)
+	for (uint64_t i = 0; i < meshCount; i++)
 	{
-		return IE::CREATE_D3D_BUFFER_FAIL;
+		// 매쉬 정보 가져오기
+		uint64_t nameSize;
+		std::string name;
+
+		// 이름의 크기 읽기
+		if (offset + sizeof(uint64_t) > _stream.size())
+		{
+			return IE::OUT_OF_POINTER_BOUNDARY;
+		}
+		std::memcpy(&nameSize, _stream.data() + offset, sizeof(uint64_t));
+		offset += sizeof(uint64_t);
+
+		// 이름 읽기
+		if (offset + nameSize > _stream.size())
+		{
+			return IE::OUT_OF_POINTER_BOUNDARY;
+		}
+		name = std::string(_stream.data() + offset, _stream.data() + offset + nameSize);
+		offset += name.size();
+
+		// 이미 있는지 체크
+		if (m_vBuffer.end() != m_vBuffer.find(name))
+		{
+			continue;
+		}
+
+		_name = name;
+
+		// 정점 데이터의 크기
+		uint64_t vertexCount;
+		if (offset + sizeof(uint64_t) > _stream.size())
+		{
+			return IE::OUT_OF_POINTER_BOUNDARY;
+		}
+		std::memcpy(&vertexCount, _stream.data() + offset, sizeof(uint64_t));
+		offset += sizeof(uint64_t);
+		uint64_t vertexByteSize = sizeof(VertexPUN) * vertexCount;
+
+		// 정점 데이터
+		if (offset + vertexByteSize > _stream.size())
+		{
+			return IE::OUT_OF_POINTER_BOUNDARY;
+		}
+		std::vector<VertexPUN> vertexData;
+		vertexData.resize(vertexCount);
+		std::memcpy(vertexData.data(), _stream.data() + offset, vertexByteSize);
+		offset += vertexByteSize;
+
+		// 인덱스 데이터의 크기
+		if (offset + sizeof(uint64_t) > _stream.size())
+		{
+			return IE::OUT_OF_POINTER_BOUNDARY;
+		}
+		uint64_t indexCount;
+		std::memcpy(&indexCount, _stream.data() + offset, sizeof(uint64_t));
+		offset += sizeof(uint64_t);
+		uint64_t indexByteSize = sizeof(int) * indexCount;
+
+		// 인덱스 데이터
+		std::vector<int> indexData;
+		indexData.resize(indexCount);
+		std::memcpy(indexData.data(), _stream.data() + offset, indexByteSize);
+		offset += indexByteSize;
+
+		D3D11_BUFFER_DESC vb = {};
+		vb.Usage = D3D11_USAGE_IMMUTABLE;
+		vb.ByteWidth = vertexByteSize;
+		vb.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vb.CPUAccessFlags = 0;
+		vb.MiscFlags = 0;
+		vb.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA vInitData = {};
+		vInitData.pSysMem = vertexData.data();
+
+		hr = m_device->CreateBuffer(
+			&vb
+			, &vInitData
+			, m_vBuffer[name].first.GetAddressOf()
+		);
+		if (S_OK != hr)
+		{
+			return IE::CREATE_D3D_BUFFER_FAIL;
+		}
+		m_vBuffer[name].second = sizeof(VertexPUN);
+
+
+		D3D11_BUFFER_DESC ib = {};
+		ib.Usage = D3D11_USAGE_IMMUTABLE;
+		ib.ByteWidth = indexByteSize;
+		ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		ib.CPUAccessFlags = 0;
+		ib.MiscFlags = 0;
+		ib.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA iInitData = {};
+		iInitData.pSysMem = indexData.data();
+
+		hr = m_device->CreateBuffer(
+			&ib
+			, &iInitData
+			, m_iBuffer[name].first.GetAddressOf()
+		);
+		m_iBuffer[name].second = indexCount;
+
+		if (S_OK != hr)
+		{
+			return IE::CREATE_D3D_BUFFER_FAIL;
+		}
 	}
 
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::AddRenderObject(const IRenderObject& _renderObject)
+IE D3D11Renderer::AddRenderObject(std::shared_ptr<IRenderObject> _renderObject)
 {
-	// 일단 복사해서 가져오자
-	// 나중에 포인터로 바꿔야할듯?
 	m_renderVector.push_back(_renderObject);
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::AddModelObject(std::shared_ptr<IModelObject> _modelObject)
+{
+	for (auto itr : _modelObject->m_renderObjects)
+	{
+		AddRenderObject(itr);
+	}
 
 	return IE::I_OK;
 }
@@ -808,8 +868,42 @@ IE D3D11Renderer::ImportAnimation()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateTexture()
+IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 {
+	HRESULT hr = S_OK;
+
+	std::string format = _textuerData.m_name.substr(_textuerData.m_name.length() - 3, _textuerData.m_name.length());
+	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
+
+	ComPtr<ID3D11ShaderResourceView> albedoSrv;
+	if ("dds" == format)
+	{
+		hr = DirectX::CreateDDSTextureFromMemory(
+			m_device.Get()
+			, reinterpret_cast<const uint8_t*>(_textuerData.m_data.data())
+			, _textuerData.m_data.size()
+			, nullptr
+			, albedoSrv.GetAddressOf()
+		);
+	}
+	else if ("png" == format)
+	{
+		hr = DirectX::CreateWICTextureFromMemory(
+			m_device.Get()
+			, reinterpret_cast<const uint8_t*>(_textuerData.m_data.data())
+			, _textuerData.m_data.size()
+			, nullptr
+			, albedoSrv.GetAddressOf()
+		);
+	}
+
+	if (false == SUCCEEDED(hr))
+	{
+		return IE::CREATE_D3D_TEXTURE_FAIL;
+	}
+
+	m_textuerMap[_textuerData.m_name] = albedoSrv;
+
 	return IE::I_OK;
 }
 
@@ -819,7 +913,7 @@ IE D3D11Renderer::CreateMaterial(const std::string _name, const MaterialData& _m
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
-	
+
 	if (m_materialMap.end() != m_materialMap.find(_name))
 	{
 		return IE::I_OK;
@@ -830,24 +924,14 @@ IE D3D11Renderer::CreateMaterial(const std::string _name, const MaterialData& _m
 	std::string format = _name.substr(_name.length() - 3, _name.length());
 	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
 
-	ComPtr<ID3D11ShaderResourceView> albedoSrv;
+	IE ie = CreateTexture(_material.m_albedo);
 
-	hr = DirectX::CreateDDSTextureFromMemory(
-		m_device.Get()
-		, reinterpret_cast<const uint8_t*>(_material.m_albedo.m_data.data())
-		, _material.m_albedo.m_data.size()
-		, nullptr
-		, albedoSrv.GetAddressOf()
-	);
-
-	if (false == SUCCEEDED(hr))
+	if (IE::I_OK != ie)
 	{
-		return IE::CREATE_D3D_TEXTURE_FAIL;
+		return ie;
 	}
 
-	m_textuerMap[_material.m_albedo.m_name] = albedoSrv;
-
-	m_materialMap[_name].m_albedo = albedoSrv;
+	m_materialMap[_name].m_albedo = m_textuerMap[_material.m_albedo.m_name];
 
 	return IE::I_OK;
 }
@@ -877,16 +961,6 @@ IE D3D11Renderer::SetAniamtion(int _meshID)
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::SetMaterial(int _mehsID)
-{
-	return IE::I_OK;
-}
-
-IE D3D11Renderer::SetTexture(int _materialID, int _slot /*= 0*/)
-{
-	return IE::I_OK;
-}
-
 IE D3D11Renderer::Draw()
 {
 	IE result = IE::I_OK;
@@ -912,7 +986,7 @@ IE D3D11Renderer::Draw()
 		for (auto& itr : m_renderVector)
 		{
 			// 정렬 된 후 이 이하는 그리지 않는다.
-			if (false == itr.m_isDraw)
+			if (false == itr->m_isDraw)
 			{
 				break;
 			}
@@ -921,7 +995,7 @@ IE D3D11Renderer::Draw()
 			// 아직 텍스쳐는 없음
 
 			// 정점 셰이더 바인딩
-			auto vs = m_vsMap.find(itr.m_vertexShader);
+			auto vs = m_vsMap.find(itr->m_vertexShader);
 			if (m_vsMap.end() == vs)
 			{
 				continue;
@@ -932,7 +1006,7 @@ IE D3D11Renderer::Draw()
 				return result;
 			}
 
-			auto ps = m_psMap.find(itr.m_pixelShader);
+			auto ps = m_psMap.find(itr->m_pixelShader);
 			if (m_psMap.end() == ps)
 			{
 				continue;
@@ -943,10 +1017,10 @@ IE D3D11Renderer::Draw()
 				return result;
 			}
 
-			const Material& mat = m_materialMap.find(itr.m_material)->second;
+			const Material& mat = m_materialMap.find(itr->m_material)->second;
 			m_deviceContext->PSSetShaderResources(0, 1, mat.m_albedo.GetAddressOf());
 
-			auto vb = m_vBuffer.find(itr.m_mesh);
+			auto vb = m_vBuffer.find(itr->m_mesh);
 			if (m_vBuffer.end() == vb)
 			{
 				continue;
@@ -957,7 +1031,7 @@ IE D3D11Renderer::Draw()
 				return result;
 			}
 
-			auto ib = m_iBuffer.find(itr.m_mesh);
+			auto ib = m_iBuffer.find(itr->m_mesh);
 			if (m_iBuffer.end() == ib)
 			{
 				continue;
@@ -969,7 +1043,7 @@ IE D3D11Renderer::Draw()
 			}
 
 			// 월드 행렬은 대부분 다르니 걍 바인딩
-			BindWorldBuffer(itr.m_world);
+			BindWorldBuffer(itr->m_world);
 
 			m_deviceContext->DrawIndexed(ib->second.second, 0, 0);
 		}

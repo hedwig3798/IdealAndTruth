@@ -53,6 +53,7 @@ void CFileListContorl::PreSubclassWindow()
 	InsertColumn(1, _T("파일명"), LVCFMT_LEFT, 100);
 	InsertColumn(2, _T("크기"), LVCFMT_LEFT, 100);
 	InsertColumn(3, _T("변환 여부"), LVCFMT_LEFT, 100);
+	InsertColumn(4, _T("파일 경로"), LVCFMT_LEFT, 100);
 	DragAcceptFiles(TRUE);
 }
 
@@ -78,13 +79,14 @@ void CFileListContorl::OnDropFiles(HDROP hDropInfo)
 			ULONGLONG size = file.GetLength();
 			file.Close();
 
-			long long siezKB = std::ceil(static_cast<float>(size) / 1024.f);
+			long long siezKB = static_cast<long long>(std::ceil(static_cast<float>(size) / 1024.f));
 
 			CString msg;
 			msg.Format(_T("%llu KB"), siezKB);
 			SetItemText(index, 2, msg);
 		}
 		SetItemText(index, 3, _T("대기"));
+		SetItemText(index, 4, path);
 	}
 
 	DragFinish(hDropInfo);

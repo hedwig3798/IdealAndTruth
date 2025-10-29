@@ -28,6 +28,9 @@
     <Filter Include="Utils\Lua">
       <UniqueIdentifier>{3d08405a-03f3-4e0b-8a19-33c0df552d56}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Model">
+      <UniqueIdentifier>{187d7edb-a7cb-493f-870a-5dd43fdf543f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">

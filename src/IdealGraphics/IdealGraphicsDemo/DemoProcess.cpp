@@ -15,6 +15,9 @@ DemoProcess::DemoProcess()
 {
 	m_mouseDown[0] = false;
 	m_mouseDown[1] = false;
+
+	m_tempRender = std::make_shared<IRenderer::IRenderObject>();
+	m_tempModel = std::make_shared<IRenderer::IModelObject>();
 }
 
 DemoProcess::~DemoProcess()
@@ -61,7 +64,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 	m_fms.OpenFile(L"DefaultVS.cso", tempvs);
 
 	IE_ASSERT(
-		m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPU, "DefaultVS", tempvs)
+		m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, "DefaultVS", tempvs)
 		, "Cannot Create VertexShader"
 	);
 
@@ -82,38 +85,26 @@ void DemoProcess::Initialize(HWND _hwnd)
 	m_camera.lock()->SetAspectRatio(static_cast<float>(m_renderWidth) / static_cast<float>(m_renderHight));
 
 	std::vector<unsigned char> tempVertex;
-	m_fms.OpenFile(L"Cube.iver", tempVertex);
+	m_fms.OpenFile(L"gun.iver", tempVertex);
+	std::string meshName;
 	IE_ASSERT(
-		m_renderer->CreateVertexIndexBuffer("Cube", tempVertex)
+		m_renderer->CreateVertexIndexBuffer(tempVertex, meshName)
 		, "Cannot Create VertexBuffer"
 	);
 
-	CreateMaterial(L"BoxMaterial.lua");
+	CreateMaterial(L"GunMaterial.lua");
 
-	m_tempObject.m_isDraw = true;
-	m_tempObject.m_mesh = "Cube";
-	m_tempObject.m_vertexShader = "DefaultVS";
-	m_tempObject.m_pixelShader = "DefaultPS";
-	m_tempObject.m_world = Matrix::Identity;
-	m_tempObject.m_material = "BoxMaterial.lua";
+	m_tempRender->m_isDraw = true;
+	m_tempRender->m_mesh = meshName;
+	m_tempRender->m_vertexShader = "DefaultVS";
+	m_tempRender->m_pixelShader = "DefaultPS";
+	m_tempRender->m_world = Matrix::CreateScale(0.001f);
+	m_tempRender->m_material = "GunMaterial.lua";
+	
+	m_tempModel->m_isDraw = true;
+	m_tempModel->m_renderObjects.push_back(m_tempRender);
 
-	m_renderer->AddRenderObject(m_tempObject);
-
-	//m_renderer->CreateCamera(
-	//	"default",
-	//	static_cast<float>(windowSize.bottom - windowSize.top),
-	//	static_cast<float>(windowSize.right - windowSize.left));
-
-	// m_renderer->SetMainCamera("default");
-
-	// camera = this->m_renderer->GetCamera();
-
-	// m_renderer->CreateSkyBox("moring", "../AssimpData/SkyBox/skymap.dds");
-	// m_renderer->SetSkyBox("moring");
-
-	// m_managers = new ManagerSet();
-	// m_staticManagers = m_managers;
-	// m_managers->Initialize(hwnd);
+	m_renderer->AddModelObject(m_tempModel);
 }
 
 void DemoProcess::Process()
@@ -125,7 +116,7 @@ void DemoProcess::Process()
 void DemoProcess::Update()
 {
 	// 임시 카메라 움직임 제어
-
+	// 나중에 매니져 클래스로 뺄 예정
 	if (true == m_camera.expired())
 	{
 		return;

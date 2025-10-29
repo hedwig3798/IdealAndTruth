@@ -36,4 +36,6 @@ protected:
 public:
 	CFileListContorl m_fileListControl;
 	CConvertButton m_convertButton;
+
+	std::string m_savePath;
 };

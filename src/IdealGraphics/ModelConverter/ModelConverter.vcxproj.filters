@@ -51,6 +51,12 @@
     <ClInclude Include="Geometry.h">
       <Filter>Assimp</Filter>
     </ClInclude>
+    <ClInclude Include="stringUtil.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CSettingButton.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ModelConverter.cpp">
@@ -70,6 +76,12 @@
     </ClCompile>
     <ClCompile Include="Convert.cpp">
       <Filter>Assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="stringUtil.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CSettingButton.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

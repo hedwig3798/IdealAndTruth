@@ -11,12 +11,22 @@
 
 class Converter
 {
+public:
+	struct ConvertJob
+	{
+		std::string m_path;
+		bool m_isStatic;
+		bool m_hasBone;
+	};
+
 private:
+
+
 	// 멀티 스레드를 위한 변수들
 	bool m_alljobFinish = false;
 	std::condition_variable m_jobCv;
 	std::mutex m_jobMutex;
-	std::queue<std::string> m_jobQ;
+	std::queue<ConvertJob> m_jobQ;
 	std::vector<std::thread> m_threads;
 
 	std::string m_outputPath;
@@ -32,26 +42,27 @@ public:
 	void SetOutputPath(std::string _val) { m_outputPath = _val; };
 	void SetExtension(std::string _val) { m_extension = _val; };
 
-	void ReadAssetFile(const std::vector<std::string>& _files);
+	void ReadAssetFile(const std::vector<ConvertJob>& _data);
 
 private:
 	void ImportDataWithThread();
-	void ImportData(std::string _path);
+
 
 	void ReadModelData(
 		aiNode* _node
 		, int _index
 		, int _parent
-		, std::vector<asMesh>& _meshData
-		, std::vector<asBone>& _boneData
+		, OUT asModel& _model
 		, const aiScene* _scene
 	);
 
 	void ReadMeshData(
 		aiNode* _node
 		, int _bone
-		, std::vector<asMesh>& _meshData
+		, OUT asModel& _model
 		, const aiScene* _scene
 	);
+
+	void WriteModel(const asModel& _model);
 };
 

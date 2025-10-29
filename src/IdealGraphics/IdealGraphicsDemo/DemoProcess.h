@@ -30,7 +30,8 @@ private:
 
 	lua_State* m_luaState;
 
-	IRenderer::IRenderObject m_tempObject;
+	std::shared_ptr<IRenderer::IRenderObject> m_tempRender;
+	std::shared_ptr<IRenderer::IModelObject> m_tempModel;
 
 	std::weak_ptr<ICamera> m_camera;
 

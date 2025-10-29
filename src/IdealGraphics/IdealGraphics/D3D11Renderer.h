@@ -13,6 +13,7 @@
 #include "Camera.h"
 #include "Vertex.h"
 #include "DXTK/DDSTextureLoader.h"
+#include "DXTK/WICTextureLoader.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -94,7 +95,8 @@ private:
 	ComPtr<ID3D11Buffer> m_cameraCBuffer;
 
 	// render object vector
-	std::vector<IRenderObject> m_renderVector;
+	std::vector<std::shared_ptr<IRenderObject>> m_renderVector;
+
 	CurrentReder m_currentRenderSet;
 
 	ComPtr<ID3D11Buffer> m_worldBuffer;
@@ -246,13 +248,13 @@ public:
 	IE ImportAnimation() override;
 
 	/// <summary>
-	/// 텍스쳐 임포트
+	/// 텍스쳐 생성
 	/// </summary>
 	/// <returns>텍스쳐 UID</returns>
-	IE CreateTexture() override;
+	IE CreateTexture(const TextuerData& _textuerData) override;
 
 	/// <summary>
-	/// 머테리얼 임포트
+	/// 머테리얼 생성
 	/// </summary>
 	/// <returns>머테리얼 UID</returns>
 	IE CreateMaterial(const std::string _name, const MaterialData& _material) override;
@@ -276,21 +278,6 @@ public:
 	/// <param name="_meshID">매쉬 UID</param>
 	/// <returns>성공 여부</returns>
 	IE SetAniamtion(int _meshID) override;
-
-	/// <summary>
-	/// 머테리얼 설정
-	/// </summary>
-	/// <param name="_mehsID">설정할 매쉬 UID</param>
-	/// <returns>성공 여부</returns>
-	IE SetMaterial(int _mehsID) override;
-
-	/// <summary>
-	/// 텍스쳐 설정
-	/// </summary>
-	/// <param name="_materialID">설정할 머테리얼 UID</param>
-	/// <param name="_slot">설정할 슬릇</param>
-	/// <returns>성공 여부</returns>
-	IE SetTexture(int _materialID, int _slot = 0) override;
 
 	/// <summary>
 	/// 최종 렌더링
@@ -338,9 +325,16 @@ public:
 	/// <param name="_name">매쉬 이름</param>
 	/// <param name="_stream">데이터</param>
 	/// <returns>성공 여부</returns>
-	IE CreateVertexIndexBuffer(std::string _name, CONST_FILE_STREAM& _stream);
+	IE CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::string& _name) override;
 
-	IE AddRenderObject(const IRenderObject& _renderObject);
+	IE AddRenderObject(std::shared_ptr<IRenderObject> _renderObject) override;
+
+	/// <summary>
+	/// 모델 오브젝트 추가
+	/// </summary>
+	/// <param name="_renderObject">모델 오브젝트</param>
+	/// <returns>성공 여부</returns>
+	IE AddModelObject(std::shared_ptr<IModelObject> _modelObject) override;
 
 	/// <summary>
 	/// 렌더 영역 설정
@@ -348,6 +342,6 @@ public:
 	/// <param name="_w">높이</param>
 	/// <param name="_h">너비</param>
 	/// <returns>성공 여부</returns>
-	virtual IE SetRenderSize(UINT _w, UINT _h) override;
+	IE SetRenderSize(UINT _w, UINT _h) override;
 };
 

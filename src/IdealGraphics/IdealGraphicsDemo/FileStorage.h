@@ -33,8 +33,14 @@ private:
 		uint64_t m_offset;
 		uint64_t m_compressedSize;
 		uint64_t m_originalSize;
+		uint64_t m_blockIndex;
 		unsigned char m_key[32];
 		unsigned char m_iv[16];
+
+		bool operator<(const BlockInfo& _other)
+		{
+			return m_blockIndex < _other.m_blockIndex;
+		}
 	};
 
 	/// <summary>
@@ -54,13 +60,17 @@ private:
 		CompressInfo& m_comInfo;
 		std::vector<unsigned char> m_oriBuffer;
 		uint64_t m_dataSize;
+		uint64_t m_blockIndex;
 		static bool m_isSuccess;
 
 		JobInfo(CompressInfo& _comInfo)
 			: m_comInfo(_comInfo)
 			, m_dataSize(0)
+			, m_blockIndex(0)
 		{
 		}
+
+
 	};
 
 	// 파일 이름 - 압축 정보 맵

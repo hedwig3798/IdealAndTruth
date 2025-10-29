@@ -7,6 +7,7 @@
 #include "ModelConverter.h"
 #include "ModelConverterDlg.h"
 #include "afxdialogex.h"
+#include "stringUtil.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -54,6 +55,21 @@ CModelConverterDlg::CModelConverterDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MODELCONVERTER_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+
+	CFile file;
+	if (file.Open(_T("./Settings.txt"), CFile::modeRead))
+	{
+		ULONGLONG size = file.GetLength();
+		CString content;
+		char* buffer = new char[(UINT)size + 1];
+		file.Read(buffer, (UINT)size);
+		buffer[size] = '\0';
+		content = buffer;
+		delete[] buffer;
+		file.Close();
+
+		m_savePath = ::WstrToStr(content.GetString());
+	}
 }
 
 void CModelConverterDlg::DoDataExchange(CDataExchange* pDX)

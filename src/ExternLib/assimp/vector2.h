@@ -97,6 +97,7 @@ public:
 };
 
 typedef aiVector2t<ai_real> aiVector2D;
+typedef aiVector2t<float> aiVector2f;
 
 #else
 

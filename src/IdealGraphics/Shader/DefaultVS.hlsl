@@ -12,12 +12,14 @@ cbuffer cbVP : register(b1)
 struct VertexIn
 {
     float3 PosL : POSITION;
+    float3 Normal : NORMAL;
     float2 Tex : TEXCOORD;
 };
 
 struct VertexOut
 {
     float4 PosH : SV_POSITION;
+    float3 Normal : NORMAL;
     float2 Tex : TEXCOORD;
 };
 

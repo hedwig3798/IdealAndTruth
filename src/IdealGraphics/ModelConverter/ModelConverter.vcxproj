@@ -190,18 +190,21 @@
     <ClInclude Include="CConvertButton.h" />
     <ClInclude Include="CFileListContorl.h" />
     <ClInclude Include="Convert.h" />
+    <ClInclude Include="CSettingButton.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="ModelConverter.h" />
     <ClInclude Include="ModelConverterDlg.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="stringUtil.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CConvertButton.cpp" />
     <ClCompile Include="CFileListContorl.cpp" />
     <ClCompile Include="Convert.cpp" />
+    <ClCompile Include="CSettingButton.cpp" />
     <ClCompile Include="ModelConverter.cpp" />
     <ClCompile Include="ModelConverterDlg.cpp" />
     <ClCompile Include="pch.cpp">
@@ -210,6 +213,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="stringUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ModelConverter.rc" />

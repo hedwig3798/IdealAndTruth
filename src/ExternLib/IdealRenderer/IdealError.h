@@ -20,6 +20,7 @@ enum class IdealError
 	CREATE_D3D_BLOB_FAIL = 15,				// D3D blob 객체 생성 실패 
 	CREATE_D3D_INPUT_LAYOUT_FAIL = 16,		// D3D IA 생성 실패 
 	WRONG_TYPE = 17,						// 잘못된 타입 지정
+	OUT_OF_POINTER_BOUNDARY = 18,			// 포인터가 지정한 범위를 넘어섬
 	UNKNOWN_ERROR,							// 알 수 없는 에러
 	END,
 };

@@ -1,7 +1,7 @@
 ﻿#include "FileStorage.h"
 #include "stringUtil.h"
 #include "SecureCodec.h"
-
+#include <algorithm>
 #include <iostream>
 
 bool FileStorage::JobInfo::m_isSuccess = true;
@@ -107,6 +107,7 @@ bool FileStorage::CompressDirectory(
 
 			// 파일 분할 시작
 			uint64_t remaining = fileSize;
+			uint64_t blockIndex = 0;
 			while (remaining > 0)
 			{
 				// 원본 파일 데이터 버퍼
@@ -137,6 +138,7 @@ bool FileStorage::CompressDirectory(
 					JobInfo job(m_compressInfoMap[name]);
 					job.m_oriBuffer = std::move(oriBuffer);
 					job.m_dataSize = toRead;
+					job.m_blockIndex = blockIndex++;
 
 					std::lock_guard<std::mutex> lock(m_jobMutex);
 					m_jobQ.push(std::move(job));
@@ -216,7 +218,7 @@ void FileStorage::CompressWithThread()
 		// 블록 메타데이터 작성
 		bInfo.m_compressedSize = compressedSize;
 		bInfo.m_originalSize = job.m_dataSize;
-
+		bInfo.m_blockIndex = job.m_blockIndex;
 		// 락이 두개가 필요한가?
 		std::unique_lock<std::mutex> chunkLock(m_chunkMutex);
 
@@ -524,6 +526,8 @@ bool FileStorage::CompressAll(const std::wstring& _path)
 			indexFile.write(reinterpret_cast<const char*>(&block.m_compressedSize), sizeof(block.m_compressedSize));
 			// 압축 해제 후 원본 크기
 			indexFile.write(reinterpret_cast<const char*>(&block.m_originalSize), sizeof(block.m_originalSize));
+			// 블록 순서 정보
+			indexFile.write(reinterpret_cast<const char*>(&block.m_blockIndex), sizeof(block.m_blockIndex));
 
 			// 암호화 정보 기록
 			indexFile.write(reinterpret_cast<const char*>(block.m_key), sizeof(block.m_key));
@@ -664,12 +668,15 @@ bool FileStorage::ResetCompressInfoMap()
 			indexFile.read(reinterpret_cast<char*>(&block.m_compressedSize), sizeof(block.m_compressedSize));
 			// 압축 해제 후 원본 크기
 			indexFile.read(reinterpret_cast<char*>(&block.m_originalSize), sizeof(block.m_originalSize));
+			indexFile.read(reinterpret_cast<char*>(&block.m_blockIndex), sizeof(block.m_blockIndex));
 			// 암호화 정보
 			indexFile.read(reinterpret_cast<char*>(block.m_key), sizeof(block.m_key));
 			indexFile.read(reinterpret_cast<char*>(block.m_iv), sizeof(block.m_iv));
 
 			comFileInfo.m_blocks.push_back(block);
 		}
+
+		std::sort(comFileInfo.m_blocks.begin(), comFileInfo.m_blocks.end());
 	}
 
 	return true;

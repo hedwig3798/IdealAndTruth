@@ -42,11 +42,14 @@ public:
 		TextuerData& m_albedo;
 	};
 
+
+
 	/// <summary>
 	/// 렌더링 오브젝트 정보
 	/// </summary>
 	struct IRenderObject
 	{
+		std::string m_name;
 		std::string m_vertexShader;
 		std::string m_pixelShader;
 		std::string m_mesh;
@@ -93,6 +96,18 @@ public:
 
 			return false;
 		}
+	};
+
+	/// <summary>
+	/// 모델 데이터
+	/// 각종 서브 매쉬의 집합체
+	/// </summary>
+	struct IModelObject
+	{
+		std::string m_name;
+		std::vector<std::shared_ptr<IRenderObject>> m_renderObjects;
+		Matrix m_world;
+		bool m_isDraw;
 	};
 
 	/// <summary>
@@ -227,13 +242,13 @@ public:
 	virtual IE ImportAnimation() = 0;
 
 	/// <summary>
-	/// 텍스쳐 데이터 임포트
+	/// 텍스쳐 데이터 생성
 	/// </summary>
 	/// <returns>오브젝트 GUID</returns>
-	virtual IE CreateTexture() = 0;
+	virtual IE CreateTexture(const TextuerData& _textuerData) = 0;
 
 	/// <summary>
-	/// 머테리얼 데이터 임포트
+	/// 머테리얼 데이터 생성
 	/// </summary>
 	/// <returns>오브젝트 GUID</returns>
 	virtual IE CreateMaterial(const std::string _name, const MaterialData& _material) = 0;
@@ -257,21 +272,6 @@ public:
 	/// <param name="_meshID">매쉬 ID</param>
 	/// <returns>성공 여부</returns>
 	virtual IE SetAniamtion(int _meshID) = 0;
-
-	/// <summary>
-	/// 매쉬의 재질 설정
-	/// </summary>
-	/// <param name="_mehsID">매쉬 ID</param>
-	/// <returns>성공 여부</returns>
-	virtual IE SetMaterial(int _mehsID) = 0;
-
-	/// <summary>
-	/// 머테리얼에 텍스쳐 설정
-	/// </summary>
-	/// <param name="_materialID">머테리얼 ID</param>
-	/// <param name="_slot">머테리얼의 슬릇</param>
-	/// <returns>성공 여부</returns>
-	virtual IE SetTexture(int _materialID, int _slot = 0) = 0;
 
 	/// <summary>
 	/// Draw Call
@@ -311,14 +311,22 @@ public:
 	/// <param name="_name">매쉬 이름</param>
 	/// <param name="_stream">데이터</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreateVertexIndexBuffer(std::string _name, CONST_FILE_STREAM& _stream) = 0;
+	virtual IE CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::string& _name) = 0;
 
 	/// <summary>
 	/// 렌더링 오브젝트 추가
 	/// </summary>
 	/// <param name="_renderObject">렌더링 오브젝트</param>
 	/// <returns>성공 여부</returns>
-	virtual IE AddRenderObject(const IRenderObject& _renderObject) = 0;
+	[[deprecated("use AddModelObject instead")]]
+	virtual IE AddRenderObject(std::shared_ptr<IRenderObject> _renderObject) = 0;
+
+	/// <summary>
+	/// 모델 오브젝트 추가
+	/// </summary>
+	/// <param name="_renderObject">모델 오브젝트</param>
+	/// <returns>성공 여부</returns>
+	virtual IE AddModelObject(std::shared_ptr<IModelObject> _modelObject) = 0;
 
 	/// <summary>
 	/// 렌더 영역 설정
