@@ -43,6 +43,7 @@ public:
 
 	const Matrix& GetViewMatrix() { return m_view; }
 	const Matrix& GetProjMatrix() { return m_proj; }
+	const Vector3& GetPosition() { return m_position; }
 
 	void SetIndex(int _val) { m_containerIndex = _val; };
 

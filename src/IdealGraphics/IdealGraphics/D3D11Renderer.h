@@ -12,21 +12,37 @@
 #include "CustomAllocator/IAllocator.h"
 #include "Camera.h"
 #include "Vertex.h"
+#include "CustomBuffer.h"
 #include "DXTK/DDSTextureLoader.h"
 #include "DXTK/WICTextureLoader.h"
-
 using Microsoft::WRL::ComPtr;
 
 class D3D11Renderer :
 	public IRenderer
 {
 private:
+	/// <summary>
+	/// 빛 데이터를 그래픽 카드에 넣기 위한 구조체
+	/// </summary>
+	struct LightBuffer
+	{
+		ComPtr<ID3D11Buffer> m_buffer;
+		ComPtr<ID3D11ShaderResourceView> m_srv;
+		bool isDirty;
+	};
 
+	/// <summary>
+	/// 머테리얼을 이루는 텍스쳐가 있는 구조체
+	/// </summary>
 	struct Material
 	{
 		ComPtr<ID3D11ShaderResourceView> m_albedo;
 	};
 
+	/// <summary>
+	/// 가장 최근 렌더한 오브젝트의 정보
+	/// 달라진거만 새로 바인딩 하기 위함
+	/// </summary>
 	struct CurrentReder
 	{
 		ComPtr<ID3D11VertexShader> m_vs = nullptr;
@@ -34,17 +50,6 @@ private:
 		ComPtr<ID3D11PixelShader> m_ps = nullptr;
 		ComPtr<ID3D11Buffer> m_vb = nullptr;
 		ComPtr<ID3D11Buffer> m_ib = nullptr;
-	};
-
-	struct CameraBuffer
-	{
-		Matrix m_view;
-		Matrix m_proj;
-	};
-
-	struct WorldBuffer
-	{
-		Matrix m_world;
 	};
 
 private:
@@ -72,8 +77,20 @@ private:
 
 	// texture map
 	std::unordered_map<std::string, ComPtr<ID3D11ShaderResourceView>> m_textuerMap;
-
+	// material map
 	std::unordered_map<std::string, Material> m_materialMap;
+
+	// light map
+	std::unordered_map<std::string, std::pair<LIGHT_TYPE, size_t>> m_lightMap;
+	std::vector<DirectionLightBufferData> m_dirctionLightVector;
+	std::vector<PointLightBufferData> m_pointLightVector;
+	std::vector<SpotLightBufferData> m_spotLightVector;
+
+	LightBuffer m_dirctionLightBuffer;
+	LightBuffer m_pointLightBuffer;
+	LightBuffer m_spotLightBuffer;
+
+	uint64_t m_maxLightCount;
 
 	// input layout buffer
 	std::vector<ComPtr<ID3D11InputLayout>> m_iaBuffer;
@@ -168,6 +185,29 @@ private:
 	IE CreateWorldBuffer();
 
 	/// <summary>
+	/// 범용적으로 쓸 수 있는 버퍼 생성 함수
+	/// </summary>
+	/// <param name="_bufferSize">필요한 사이즈</param>
+	/// <param name="_buffer">생성될 버퍼</param>
+	/// <returns>성공 여부</returns>
+	IE CreateBuffer(uint64_t _bufferSize, OUT ComPtr<ID3D11Buffer> _buffer, void* _initData = nullptr);
+
+	/// <summary>
+	/// StructedBuffer 생성
+	/// </summary>
+	/// <param name="_elementSize">버퍼 내용물의 크기</param>
+	/// <param name="_maxCount">요소의 최대 갯수</param>
+	/// <param name="_buffer">버퍼</param>
+	/// <param name="_srv">버퍼 리소스</param>
+	/// <returns>성공 여부</returns>
+	IE CreateStructedBuffer(
+		uint64_t _elementSize
+		, uint64_t _maxCount
+		, OUT ComPtr<ID3D11Buffer>& _buffer
+		, OUT ComPtr<ID3D11ShaderResourceView>& _srv
+	);
+
+	/// <summary>
 	/// InputLayout 생성
 	/// </summary>
 	/// <param name="_type">정점 타입</param>
@@ -188,6 +228,12 @@ private:
 	/// </summary>
 	/// <returns>성공 여부</returns>
 	IE BindWorldBuffer(const Matrix& _matrix);
+
+	IE BindDataBuffer(
+		ComPtr<ID3D11Buffer> _buffer
+		, void* _data
+		, uint64_t _size
+	);
 
 	/// <summary>
 	/// 정점 셰이더와 그에 맞는 Input layout을 바인딩
@@ -221,7 +267,6 @@ private:
 #pragma endregion
 
 public:
-
 	/// <summary>
 	/// 초기화
 	/// </summary>
@@ -343,5 +388,19 @@ public:
 	/// <param name="_h">너비</param>
 	/// <returns>성공 여부</returns>
 	IE SetRenderSize(UINT _w, UINT _h) override;
+
+	/// <summary>
+	/// 한 씬에 존재할 수 있는 빛의 총 갯수
+	/// </summary>
+	/// <param name="_val">갯수</param>
+	void SetMaxLightCount(uint64_t _val) { m_maxLightCount = _val; };
+
+	/// <summary>
+	/// 씬에 빛 추가
+	/// </summary>
+	/// <param name="_name">빛 이름</param>
+	/// <param name="_lightData">빛 데이터</param>
+	/// <returns>성공 여부</returns>
+	IE AddLight(const std::string& _name, const LightData& _lightData);
 };
 

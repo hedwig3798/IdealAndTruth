@@ -34,11 +34,14 @@ void DemoProcess::Initialize(HWND _hwnd)
 		return;
 	}
 
+	// 파일 세팅
 	FMSSetting();
+	// 루아 세팅
 	LuaSetting();
 
 	m_hwnd = _hwnd;
 
+	// 렌더러 만들기
 	CreateRendererState();
 
 	HMODULE m_rendererDll = ::LoadLibraryA("./IdealGraphics.dll");
@@ -50,16 +53,19 @@ void DemoProcess::Initialize(HWND _hwnd)
 
 	m_renderer->SetRenderSize(m_renderWidth, m_renderHight);
 
+	// 초기화
 	IE_ASSERT(
 		m_renderer->Initialize(m_rendererState, m_hwnd)
 		, "Renderer Initialize Fail"
 	);
 
+	// 뒷배경 색
 	IE_ASSERT(
 		m_renderer->SetBackgroundColor(0, 0, 0, 1)
 		, "Set Background Color Fail"
 	);
 
+	// 정점 셰이더 생성
 	FILE_STREAM tempvs;
 	m_fms.OpenFile(L"DefaultVS.cso", tempvs);
 
@@ -68,7 +74,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 		, "Cannot Create VertexShader"
 	);
 
-
+	// 픽셀 셰이더 생성
 	FILE_STREAM tempps;
 	m_fms.OpenFile(L"DefaultPS.cso", tempps);
 	IE_ASSERT(
@@ -76,6 +82,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 		, "Cannot Create PixelShader"
 	);
 
+	// 카메라 생성
 	m_camera = m_renderer->CreateCamera();
 	IE_ASSERT(
 		m_renderer->SetCamera(m_camera)
@@ -84,6 +91,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 
 	m_camera.lock()->SetAspectRatio(static_cast<float>(m_renderWidth) / static_cast<float>(m_renderHight));
 
+	// 정점 버퍼 생성
 	std::vector<unsigned char> tempVertex;
 	m_fms.OpenFile(L"gun.iver", tempVertex);
 	std::string meshName;
@@ -92,8 +100,10 @@ void DemoProcess::Initialize(HWND _hwnd)
 		, "Cannot Create VertexBuffer"
 	);
 
+	// 머테리얼 데이터로 머테리얼 만들기
 	CreateMaterial(L"GunMaterial.lua");
 
+	// 매쉬 데이터 생성
 	m_tempRender->m_isDraw = true;
 	m_tempRender->m_mesh = meshName;
 	m_tempRender->m_vertexShader = "DefaultVS";
@@ -103,8 +113,19 @@ void DemoProcess::Initialize(HWND _hwnd)
 	
 	m_tempModel->m_isDraw = true;
 	m_tempModel->m_renderObjects.push_back(m_tempRender);
-
+	
 	m_renderer->AddModelObject(m_tempModel);
+
+	// 빛 테스트
+	m_renderer->SetMaxLightCount(10);
+
+	IRenderer::LightData ld;
+	ld.m_direction = {0, -1, 0};
+	ld.m_intensity = 1.0f;
+	ld.m_color = { 1, 1, 1 };
+	ld.m_type = IRenderer::LIGHT_TYPE::DIRECTION;
+
+	m_renderer->AddLight("temp", ld);
 }
 
 void DemoProcess::Process()
@@ -299,6 +320,8 @@ void DemoProcess::CreateRendererState()
 		renderState.m_bindFlags |= flag;
 	}
 	m_rendererState.m_renderTargetView = renderState;
+
+	m_rendererState.m_maxLightCount = 10;
 }
 
 void DemoProcess::FMSSetting()

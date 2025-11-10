@@ -10,6 +10,9 @@
     <Filter Include="IADummy">
       <UniqueIdentifier>{fb707ee2-1ac0-40a9-b338-6f64aa3cc80a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Buffers">
+      <UniqueIdentifier>{f19bf199-2909-40ed-a4cd-a3565539669e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DefaultVS.hlsl">
@@ -20,6 +23,9 @@
     </FxCompile>
     <FxCompile Include="VertexSuperDummy.hlsl">
       <Filter>IADummy</Filter>
+    </FxCompile>
+    <FxCompile Include="Buffers.hlsl">
+      <Filter>Buffers</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

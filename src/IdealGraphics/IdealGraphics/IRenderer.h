@@ -23,6 +23,33 @@ typedef std::vector<unsigned char> FILE_STREAM;
 class IRenderer
 {
 public:
+	enum class LIGHT_TYPE
+	{
+		DIRECTION,
+		POINT,
+		SPOTLIGHT,
+		END,
+	};
+
+	/// <summary>
+	/// 빛을 정의하는 구조체
+	/// 이 구조체 하나로 3가지 타입의 빛을 다 쓴다.
+	/// 그냥 하나로 다 쓰는게 편하다
+	/// 빛 종류를 바꾸는거도 편하다
+	/// </summary>
+	struct LightData
+	{
+		LIGHT_TYPE m_type;
+		Vector3 m_direction;
+		Vector3 m_position;
+		Vector3 m_color;
+		float m_attenuation;
+		float m_inAngle;
+		float m_outAngle;
+		float m_intensity;
+		float m_range;
+	};
+
 	/// <summary>
 	/// 텍스쳐를 만들기 위해 필요한 데이터를 담은 구조체
 	/// </summary>
@@ -41,8 +68,6 @@ public:
 		Vector4 m_color;
 		TextuerData& m_albedo;
 	};
-
-
 
 	/// <summary>
 	/// 렌더링 오브젝트 정보
@@ -116,6 +141,7 @@ public:
 	struct InitializeState
 	{
 		UINT m_renderVectorSize;
+		UINT m_maxLightCount;
 
 		/// <summary>
 		/// 디바이스 플래그
@@ -190,8 +216,6 @@ public:
 			UINT m_viewDimension;
 		} m_renderTargetView;
 	};
-
-
 
 	enum class VERTEX_TYPE
 	{
@@ -335,10 +359,24 @@ public:
 	/// <param name="_h">너비</param>
 	/// <returns>성공 여부</returns>
 	virtual IE SetRenderSize(UINT _w, UINT _h) = 0;
+
+	/// <summary>
+	/// 한 씬에 존재할 수 있는 빛의 총 갯수
+	/// </summary>
+	/// <param name="_val">갯수</param>
+	virtual void SetMaxLightCount(uint64_t _val) = 0;
+
+	/// <summary>
+	/// 씬에 빛 추가
+	/// </summary>
+	/// <param name="_name">빛 이름</param>
+	/// <param name="_lightData">빛 데이터</param>
+	/// <returns>성공 여부</returns>
+	virtual IE AddLight(const std::string& _name, const LightData& _lightData) = 0;
 };
 
 /// <summary>
-/// 스택 할당자 생성
+/// 렌더러 생성
 /// </summary>
-/// <returns> 스택 할당자</returns>
+/// <returns>렌더러</returns>
 extern "C" IDEALGRAPHICS_DLL IRenderer* CreateD3D11Renderer(); 

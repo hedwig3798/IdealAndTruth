@@ -15,6 +15,7 @@ D3D11Renderer::D3D11Renderer()
 	, m_allocators{}
 	, m_defaultBG{ 1, 1, 1, 1 }
 	, m_currentRenderSet()
+	, m_maxLightCount(1)
 {
 
 }
@@ -305,7 +306,7 @@ IE D3D11Renderer::CreateCameraBuffer()
 
 	D3D11_BUFFER_DESC mbd = {};
 	mbd.Usage = D3D11_USAGE_DYNAMIC;
-	mbd.ByteWidth = sizeof(CameraBuffer);
+	mbd.ByteWidth = sizeof(CameraBufferData);
 	mbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	mbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	mbd.MiscFlags = 0;
@@ -327,7 +328,7 @@ IE D3D11Renderer::CreateWorldBuffer()
 
 	D3D11_BUFFER_DESC mbd = {};
 	mbd.Usage = D3D11_USAGE_DYNAMIC;
-	mbd.ByteWidth = sizeof(WorldBuffer);
+	mbd.ByteWidth = sizeof(WorldBufferData);
 	mbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	mbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	mbd.MiscFlags = 0;
@@ -338,6 +339,65 @@ IE D3D11Renderer::CreateWorldBuffer()
 	if (S_OK != hr)
 	{
 		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::CreateBuffer(uint64_t _bufferSize, OUT ComPtr<ID3D11Buffer> _buffer, void* _initData)
+{
+	HRESULT hr = S_OK;
+
+	D3D11_BUFFER_DESC mbd = {};
+	mbd.Usage = D3D11_USAGE_DYNAMIC;
+	mbd.ByteWidth = static_cast<UINT>(_bufferSize);
+	mbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	mbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	mbd.MiscFlags = 0;
+	mbd.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA initData = {};
+	initData.pSysMem = _initData;
+
+	hr = m_device->CreateBuffer(&mbd, &initData, _buffer.GetAddressOf());
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::CreateStructedBuffer(uint64_t _elementSize, uint64_t _maxCount, OUT ComPtr<ID3D11Buffer>& _buffer, OUT ComPtr<ID3D11ShaderResourceView>& _srv)
+{
+	HRESULT hr;
+
+	D3D11_BUFFER_DESC desc = {};
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.ByteWidth = static_cast<UINT>(_elementSize * _maxCount);
+	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	desc.StructureByteStride = static_cast<UINT>(_elementSize);
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	hr = m_device->CreateBuffer(&desc, nullptr, _buffer.GetAddressOf());
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = static_cast<UINT>(_maxCount);
+
+	hr = m_device->CreateShaderResourceView(_buffer.Get(), &srvDesc, _srv.GetAddressOf());
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_SHAEDER_RESOURCE_VIEW_FAIL;
 	}
 
 	return IE::I_OK;
@@ -366,9 +426,10 @@ IE D3D11Renderer::BindMainCameraBuffer()
 		return IE::MAPPING_SHADER_BUFFER_FAIL;
 	}
 
-	CameraBuffer* dataptr = (CameraBuffer*)mappedResource.pData;
+	CameraBufferData* dataptr = (CameraBufferData*)mappedResource.pData;
 	dataptr->m_view = m_mainCamera.lock()->GetViewMatrix().Transpose();
 	dataptr->m_proj = m_mainCamera.lock()->GetProjMatrix().Transpose();
+	dataptr->m_camearaPos = m_mainCamera.lock()->GetPosition();
 
 	m_deviceContext->VSSetConstantBuffers(1, 1, m_cameraCBuffer.GetAddressOf());
 	m_deviceContext->Unmap(m_cameraCBuffer.Get(), 0);
@@ -394,11 +455,43 @@ IE D3D11Renderer::BindWorldBuffer(const Matrix& _matrix)
 		return IE::MAPPING_SHADER_BUFFER_FAIL;
 	}
 
-	WorldBuffer* dataptr = (WorldBuffer*)mappedResource.pData;
+	WorldBufferData* dataptr = (WorldBufferData*)mappedResource.pData;
 	dataptr->m_world = _matrix.Transpose();
 
 	m_deviceContext->VSSetConstantBuffers(0, 1, m_worldBuffer.GetAddressOf());
 	m_deviceContext->Unmap(m_worldBuffer.Get(), 0);
+
+	return IE::I_OK;
+}
+
+
+IE D3D11Renderer::BindDataBuffer(ComPtr<ID3D11Buffer> _buffer, void* _data, uint64_t _size)
+{
+	if (nullptr == _buffer
+		|| nullptr == _data
+		|| nullptr == m_deviceContext)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	D3D11_BUFFER_DESC desc;
+	_buffer->GetDesc(&desc);
+
+	if (desc.Usage != D3D11_USAGE_DYNAMIC 
+		|| false == (desc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))
+	{
+		return IE::D3D_WRONG_BUFFER_ACCESS_FLAG;
+	}
+
+	if (_size > desc.ByteWidth)
+	{
+		return IE::OUT_OF_POINTER_BOUNDARY;
+	}
+
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	m_deviceContext->Map(_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	memcpy(mapped.pData, _data, _size);
+	m_deviceContext->Unmap(_buffer.Get(), 0);
 
 	return IE::I_OK;
 }
@@ -565,6 +658,7 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 	return IE::I_OK;
 }
 
+
 IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, CONST_FILE_STREAM& _stream)
 {
 	// 같은 이름의 셰이더가 있다면 무시힌다.
@@ -719,7 +813,7 @@ IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::s
 
 		D3D11_BUFFER_DESC vb = {};
 		vb.Usage = D3D11_USAGE_IMMUTABLE;
-		vb.ByteWidth = vertexByteSize;
+		vb.ByteWidth = static_cast<UINT>(vertexByteSize);
 		vb.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vb.CPUAccessFlags = 0;
 		vb.MiscFlags = 0;
@@ -742,7 +836,7 @@ IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::s
 
 		D3D11_BUFFER_DESC ib = {};
 		ib.Usage = D3D11_USAGE_IMMUTABLE;
-		ib.ByteWidth = indexByteSize;
+		ib.ByteWidth = static_cast<UINT>(indexByteSize);
 		ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		ib.CPUAccessFlags = 0;
 		ib.MiscFlags = 0;
@@ -756,7 +850,7 @@ IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::s
 			, &iInitData
 			, m_iBuffer[name].first.GetAddressOf()
 		);
-		m_iBuffer[name].second = indexCount;
+		m_iBuffer[name].second = static_cast<UINT>(indexCount);
 
 		if (S_OK != hr)
 		{
@@ -790,6 +884,82 @@ IE D3D11Renderer::SetRenderSize(UINT _w, UINT _h)
 	m_renderHight = _h;
 
 	return IE::I_OK;
+}
+
+IE D3D11Renderer::AddLight(const std::string& _name, const LightData& _lightData)
+{
+	HRESULT hr = S_OK;
+	ComPtr<ID3D11Buffer> lightBuffer;
+	IE ie = IE::I_OK;
+
+	// 이미 있다면 만들 필요 없다
+	if (m_lightMap.end() != m_lightMap.find(_name))
+	{
+		return IE::I_OK;
+	}
+
+	// 각 빛 타입에 맞는 버퍼 생성
+	switch (_lightData.m_type)
+	{
+	case LIGHT_TYPE::DIRECTION:
+	{
+		if (m_dirctionLightVector.size() >= m_maxLightCount)
+		{
+			return IE::MAX_ELEMENT;
+		}
+		m_dirctionLightBuffer.isDirty = true;
+
+		DirectionLightBufferData d;
+		d.m_direction = _lightData.m_direction;
+		d.m_color = _lightData.m_color;
+		d.m_intensity = _lightData.m_intensity;
+
+		m_dirctionLightVector.push_back(d);
+		break;
+	}
+	case LIGHT_TYPE::POINT:
+	{
+		if (m_pointLightVector.size() >= m_maxLightCount)
+		{
+			return IE::MAX_ELEMENT;
+		}
+		m_pointLightBuffer.isDirty = true;
+
+		PointLightBufferData d;
+		d.m_position = _lightData.m_position;
+		d.m_color = _lightData.m_color;
+		d.m_attenuation = _lightData.m_attenuation;
+		d.m_intensity = _lightData.m_intensity;
+		d.m_range = _lightData.m_range;
+
+		m_pointLightVector.push_back(d);
+		break;
+	}
+	case LIGHT_TYPE::SPOTLIGHT:
+	{
+		if (m_spotLightVector.size() >= m_maxLightCount)
+		{
+			return IE::MAX_ELEMENT;
+		}
+		m_spotLightBuffer.isDirty = true;
+
+		SpotLightBufferData d;
+		d.m_direction = _lightData.m_direction;
+		d.m_position = _lightData.m_position;
+		d.m_color = _lightData.m_color;
+		d.m_attenuation = _lightData.m_attenuation;
+		d.m_inAngle = _lightData.m_inAngle;
+		d.m_outAngle = _lightData.m_outAngle;
+		d.m_intensity = _lightData.m_intensity;
+
+		m_spotLightVector.push_back(d);
+		break;
+	}
+	default:
+		break;
+	}
+
+	return ie;
 }
 
 IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
@@ -849,6 +1019,30 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 	m_renderVector.reserve(_initalizeState.m_renderVectorSize);
 
 	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 빛의 최대 갯수 설정
+	m_maxLightCount = _initalizeState.m_maxLightCount;
+
+	CreateStructedBuffer(
+		sizeof(DirectionLightBufferData)
+		, m_maxLightCount
+		, m_dirctionLightBuffer.m_buffer
+		, m_dirctionLightBuffer.m_srv
+	);
+
+	CreateStructedBuffer(
+		sizeof(PointLightBufferData)
+		, m_maxLightCount
+		, m_pointLightBuffer.m_buffer
+		, m_pointLightBuffer.m_srv
+	);
+
+	CreateStructedBuffer(
+		sizeof(SpotLightBufferData)
+		, m_maxLightCount
+		, m_spotLightBuffer.m_buffer
+		, m_spotLightBuffer.m_srv
+	);
 
 	return IE::I_OK;
 }
@@ -977,6 +1171,40 @@ IE D3D11Renderer::Draw()
 	{
 		// 계산을 했다면 바인딩
 		BindMainCameraBuffer();
+	}
+
+	// 빛 데이터 바인딩
+	// 뭔가 맘에 안드는데 좀 더 좋은 방법이 있는지 생각해봐야할듯
+	if (true == m_dirctionLightBuffer.isDirty)
+	{
+		m_dirctionLightBuffer.isDirty = false;
+		BindDataBuffer(
+			m_dirctionLightBuffer.m_buffer
+			, m_dirctionLightVector.data()
+			, sizeof(DirectionLightBufferData) * m_dirctionLightVector.size()
+		);
+
+		m_deviceContext->PSSetShaderResources(1, 1, m_dirctionLightBuffer.m_srv.GetAddressOf());
+	}
+
+	if (true == m_pointLightBuffer.isDirty)
+	{
+		m_pointLightBuffer.isDirty = false;
+		BindDataBuffer(
+			m_pointLightBuffer.m_buffer
+			, m_pointLightVector.data()
+			, sizeof(DirectionLightBufferData) * m_pointLightVector.size()
+		);
+	}
+
+	if (true == m_spotLightBuffer.isDirty)
+	{
+		m_spotLightBuffer.isDirty = false;
+		BindDataBuffer(
+			m_spotLightBuffer.m_buffer
+			, m_spotLightVector.data()
+			, sizeof(DirectionLightBufferData) * m_spotLightVector.size()
+		);
 	}
 
 	if (false == m_renderVector.empty())

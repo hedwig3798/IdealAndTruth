@@ -184,6 +184,7 @@ copy "$(MSBuildProjectDirectory)\IdealError.h" "$(SolutionDir)..\ExternLib\Ideal
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Color.h" />
+    <ClInclude Include="CustomBuffer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ICamera.h" />
