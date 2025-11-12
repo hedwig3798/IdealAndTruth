@@ -4,18 +4,16 @@
 #include <map>
 #include <set>
 #include <fstream>
-#include <windows.h>
 #include <memory>
 #include <sstream>
 #include <vector>
 #include <queue>
-#include <algorithm>
+#include <windows.h>
 #include <thread>
 #include <condition_variable>
 #include <mutex>
 
-#include "lz4hc.h"
-#include "lz4.h"
+#define OUT
 
 /// <summary>
 /// File Management System

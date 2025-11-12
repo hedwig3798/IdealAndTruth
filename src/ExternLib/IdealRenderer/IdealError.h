@@ -35,7 +35,7 @@ typedef IdealError IE;
 { \
 	IE result;\
 	result = FUNC; \
-	if(IE::I_OK == result) \
+	if(IE::I_OK != result) \
 	{ \
 		std::cout \
 		<< static_cast<int>(result) \

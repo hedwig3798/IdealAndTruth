@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <iostream>
 
+#include "lz4hc.h"
+#include "lz4.h"
+
 bool FileStorage::JobInfo::m_isSuccess = true;
 
 FileStorage::FileStorage()
@@ -17,6 +20,7 @@ FileStorage::FileStorage()
 	, m_currentPartFileSize(0)
 	, m_partFileIndex(0)
 	, m_chunkSize(0)
+	, m_currentChunkSize(0)
 {
 }
 
