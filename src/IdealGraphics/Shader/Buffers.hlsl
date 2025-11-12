@@ -1,3 +1,6 @@
+
+// 상수 버퍼를 통합으로 관리하기 위한 헤더 파일
+
 cbuffer cbPerObject : register(b0)
 {
     matrix g_world;

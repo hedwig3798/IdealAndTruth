@@ -31,16 +31,23 @@ enum class IdealError
 typedef IdealError IE;
 
 #ifdef _DEBUG
-#define IE_ASSERT(FUNC, MSG) \
+#define IE_ASSERT(FUNC) \
 { \
 	IE result;\
 	result = FUNC; \
-	if(IE::I_OK != result) \
+	if(IE::I_OK == result) \
 	{ \
-		std::cout << static_cast<int>(result) << " : " << MSG << std::endl; \
+		std::cout \
+		<< static_cast<int>(result) \
+		<< " : " \
+		<< "[File: " << __FILE__ \
+		<< ", Line: " << __LINE__ \
+		<< "] " \
+		<< #FUNC \
+		<< std::endl; \
 		return; \
 	} \
 }
 #else
-#define IE_ASSERT(FUNC, MSG) FUNC;
+#define IE_ASSERT(FUNC) FUNC;
 #endif

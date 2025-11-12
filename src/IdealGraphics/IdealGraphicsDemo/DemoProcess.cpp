@@ -54,40 +54,25 @@ void DemoProcess::Initialize(HWND _hwnd)
 	m_renderer->SetRenderSize(m_renderWidth, m_renderHight);
 
 	// 초기화
-	IE_ASSERT(
-		m_renderer->Initialize(m_rendererState, m_hwnd)
-		, "Renderer Initialize Fail"
-	);
+	IE_ASSERT(m_renderer->Initialize(m_rendererState, m_hwnd));
 
 	// 뒷배경 색
-	IE_ASSERT(
-		m_renderer->SetBackgroundColor(0, 0, 0, 1)
-		, "Set Background Color Fail"
-	);
+	IE_ASSERT(m_renderer->SetBackgroundColor(0, 0, 0, 1));
 
 	// 정점 셰이더 생성
 	FILE_STREAM tempvs;
 	m_fms.OpenFile(L"DefaultVS.cso", tempvs);
 
-	IE_ASSERT(
-		m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, "DefaultVS", tempvs)
-		, "Cannot Create VertexShader"
-	);
+	IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, "DefaultVS", tempvs));
 
 	// 픽셀 셰이더 생성
 	FILE_STREAM tempps;
 	m_fms.OpenFile(L"DefaultPS.cso", tempps);
-	IE_ASSERT(
-		m_renderer->CreatePixelShader("DefaultPS", tempps)
-		, "Cannot Create PixelShader"
-	);
+	IE_ASSERT(m_renderer->CreatePixelShader("DefaultPS", tempps));
 
 	// 카메라 생성
 	m_camera = m_renderer->CreateCamera();
-	IE_ASSERT(
-		m_renderer->SetCamera(m_camera)
-		, "Cannot Set Camera"
-	);
+	IE_ASSERT(m_renderer->SetCamera(m_camera));
 
 	m_camera.lock()->SetAspectRatio(static_cast<float>(m_renderWidth) / static_cast<float>(m_renderHight));
 
@@ -95,10 +80,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 	std::vector<unsigned char> tempVertex;
 	m_fms.OpenFile(L"gun.iver", tempVertex);
 	std::string meshName;
-	IE_ASSERT(
-		m_renderer->CreateVertexIndexBuffer(tempVertex, meshName)
-		, "Cannot Create VertexBuffer"
-	);
+	IE_ASSERT(m_renderer->CreateVertexIndexBuffer(tempVertex, meshName));
 
 	// 머테리얼 데이터로 머테리얼 만들기
 	CreateMaterial(L"GunMaterial.lua");
@@ -202,10 +184,7 @@ void DemoProcess::Update()
 
 void DemoProcess::Render()
 {
-	IE_ASSERT(
-		m_renderer->Draw()
-		, "Draw Error"
-	);
+	IE_ASSERT(m_renderer->Draw());
 
 	// this->graphicsEngine->begineDraw();
 	// this->object->Render(graphicsEngine);
