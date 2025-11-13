@@ -56,6 +56,8 @@ private:
 	// 윈도우 핸들러
 	HWND m_hwnd;
 
+	void* m_fms;
+
 	// D3D Components
 	ComPtr<ID3D11Device> m_device;
 	ComPtr<ID3D11DeviceContext> m_deviceContext;
@@ -68,20 +70,20 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_finalSRV;
 
 	// Shader map
-	std::unordered_map<std::string, std::pair<ComPtr<ID3D11VertexShader>, ComPtr<ID3D11InputLayout>>> m_vsMap;
-	std::unordered_map<std::string, ComPtr<ID3D11PixelShader>> m_psMap;
+	std::unordered_map<std::wstring, std::pair<ComPtr<ID3D11VertexShader>, ComPtr<ID3D11InputLayout>>> m_vsMap;
+	std::unordered_map<std::wstring, ComPtr<ID3D11PixelShader>> m_psMap;
 
 	// Buffer map
-	std::unordered_map<std::string, std::pair<ComPtr<ID3D11Buffer>, UINT>> m_vBuffer;
-	std::unordered_map<std::string, std::pair<ComPtr<ID3D11Buffer>, UINT>> m_iBuffer;
+	std::unordered_map<std::wstring, std::pair<ComPtr<ID3D11Buffer>, UINT>> m_vBuffer;
+	std::unordered_map<std::wstring, std::pair<ComPtr<ID3D11Buffer>, UINT>> m_iBuffer;
 
 	// texture map
-	std::unordered_map<std::string, ComPtr<ID3D11ShaderResourceView>> m_textuerMap;
+	std::unordered_map<std::wstring, ComPtr<ID3D11ShaderResourceView>> m_textuerMap;
 	// material map
-	std::unordered_map<std::string, Material> m_materialMap;
+	std::unordered_map<std::wstring, Material> m_materialMap;
 
 	// light map
-	std::unordered_map<std::string, std::pair<LIGHT_TYPE, size_t>> m_lightMap;
+	std::unordered_map<std::wstring, std::pair<LIGHT_TYPE, size_t>> m_lightMap;
 	std::vector<DirectionLightBufferData> m_dirctionLightVector;
 	std::vector<PointLightBufferData> m_pointLightVector;
 	std::vector<SpotLightBufferData> m_spotLightVector;
@@ -266,6 +268,12 @@ private:
 	IE BindIndexBuffer(ComPtr<ID3D11Buffer> _id);
 #pragma endregion
 
+	bool(*FileOpenCallbackFunc)(
+		void* userData
+		, const std::wstring& _filename
+		, OUT FILE_STREAM& fileData
+		);
+
 public:
 	/// <summary>
 	/// 초기화
@@ -302,7 +310,7 @@ public:
 	/// 머테리얼 생성
 	/// </summary>
 	/// <returns>머테리얼 UID</returns>
-	IE CreateMaterial(const std::string _name, const MaterialData& _material) override;
+	IE CreateMaterial(const std::wstring _name, const MaterialData& _material) override;
 
 	/// <summary>
 	/// 카메라 생성
@@ -354,7 +362,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	IE CreateVertexShader(VERTEX_TYPE _type, const std::string&, CONST_FILE_STREAM& _stream) override;
+	IE CreateVertexShader(VERTEX_TYPE _type, const std::wstring& _name) override;
 
 	/// <summary>
 	/// 픽셀 셰이더 생성
@@ -362,7 +370,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	IE CreatePixelShader(const std::string&, CONST_FILE_STREAM& _stream) override;
+	IE CreatePixelShader(const std::wstring& _name) override;
 
 	/// <summary>
 	/// 정점 및 인덱스 버퍼 생성
@@ -370,7 +378,7 @@ public:
 	/// <param name="_name">매쉬 이름</param>
 	/// <param name="_stream">데이터</param>
 	/// <returns>성공 여부</returns>
-	IE CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::string& _name) override;
+	IE CreateVertexIndexBuffer(const std::wstring& _name) override;
 
 	IE AddRenderObject(std::shared_ptr<IRenderObject> _renderObject) override;
 
@@ -401,6 +409,6 @@ public:
 	/// <param name="_name">빛 이름</param>
 	/// <param name="_lightData">빛 데이터</param>
 	/// <returns>성공 여부</returns>
-	IE AddLight(const std::string& _name, const LightData& _lightData);
+	IE AddLight(const std::wstring& _name, const LightData& _lightData);
 };
 

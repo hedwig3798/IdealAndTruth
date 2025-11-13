@@ -24,6 +24,7 @@ enum class IdealError
 	MAX_ELEMENT = 19,							// 더이상 해당 객체를 만들 수 없음
 	CREATE_D3D_SHAEDER_RESOURCE_VIEW_FAIL = 20,	// SRV 생성 실패
 	D3D_WRONG_BUFFER_ACCESS_FLAG = 21,			// D3D 버퍼에 접근 플래그 오류
+	OPEN_FILE_FAIL = 22,						// 파일 읽기 실패
 	UNKNOWN_ERROR,								// 알 수 없는 에러
 	END,
 };

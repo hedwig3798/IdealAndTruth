@@ -58,6 +58,12 @@ public:
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 		WPARAM wParam, LPARAM lParam);
 
+	static bool OpenFile(
+		void* _fms
+		, const std::wstring& _filename
+		, OUT FILE_STREAM& _fileData
+	);
+
 private:
 	// 실제 수행되는 함수
 	void Update();

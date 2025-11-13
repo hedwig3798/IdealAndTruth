@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "D3D11Renderer.h"
+#include "stringUtil.h"
 #include <sstream>
 #define MEM_SIZE 1'048'576'000 * 4 //4GB
 
@@ -659,7 +660,7 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 }
 
 
-IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, CONST_FILE_STREAM& _stream)
+IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::wstring& _name)
 {
 	// 같은 이름의 셰이더가 있다면 무시힌다.
 	auto mit = m_vsMap.find(_name);
@@ -669,15 +670,22 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name
 	}
 
 	// 널 체크
-	if (true == _stream.empty()
+	if (nullptr == FileOpenCallbackFunc
 		|| nullptr == m_device)
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
 
+	FILE_STREAM stream;
+	bool isSuccess = FileOpenCallbackFunc(m_fms, _name, stream);
+	if (false == isSuccess)
+	{
+		return IE::OPEN_FILE_FAIL;
+	}
+
 	// 정점 셰이더 객체 생성
 	ComPtr<ID3D11VertexShader> vs;
-	m_device->CreateVertexShader(_stream.data(), _stream.size(), nullptr, vs.GetAddressOf());
+	m_device->CreateVertexShader(stream.data(), stream.size(), nullptr, vs.GetAddressOf());
 
 	// 맵에 저장
 	m_vsMap[_name].first = vs;
@@ -694,7 +702,7 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name
 	if (nullptr == m_iaBuffer[static_cast<int>(_type)])
 	{
 		IE result;
-		result = CreateInputLayout(_type, _stream);
+		result = CreateInputLayout(_type, stream);
 		if (IE::I_OK != result)
 		{
 			return result;
@@ -705,7 +713,7 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::string& _name
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreatePixelShader(const std::string& _name, CONST_FILE_STREAM& _stream)
+IE D3D11Renderer::CreatePixelShader(const std::wstring& _name)
 {
 	// 같은 이름의 셰이더가 있다면 무시힌다.
 	auto mit = m_psMap.find(_name);
@@ -715,34 +723,48 @@ IE D3D11Renderer::CreatePixelShader(const std::string& _name, CONST_FILE_STREAM&
 	}
 
 	// 널 체크
-	if (true == _stream.empty()
+	if (nullptr == FileOpenCallbackFunc
 		|| nullptr == m_device)
 	{
 		return IE::NULL_POINTER_ACCESS;
 	}
 
+	FILE_STREAM stream;
+	bool isSuccess = FileOpenCallbackFunc(m_fms, _name, stream);
+	if (false == isSuccess)
+	{
+		return IE::OPEN_FILE_FAIL;
+	}
+
 	// 정점 셰이더 객체 생성
 	ComPtr<ID3D11PixelShader> ps;
-	m_device->CreatePixelShader(_stream.data(), _stream.size(), nullptr, ps.GetAddressOf());
+	m_device->CreatePixelShader(stream.data(), stream.size(), nullptr, ps.GetAddressOf());
 
 	// 맵에 저장
 	m_psMap[_name] = ps;
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::string& _name)
+IE D3D11Renderer::CreateVertexIndexBuffer(const std::wstring& _name)
 {
 	HRESULT hr = S_OK;
+
+	FILE_STREAM stream;
+	bool isSuccess = FileOpenCallbackFunc(m_fms, _name, stream);
+	if (false == isSuccess)
+	{
+		return IE::OPEN_FILE_FAIL;
+	}
 
 	uint64_t offset = 0;
 
 	// 매쉬 갯수
 	uint64_t meshCount;
-	if (offset + sizeof(uint64_t) > _stream.size())
+	if (offset + sizeof(uint64_t) > stream.size())
 	{
 		return IE::OUT_OF_POINTER_BOUNDARY;
 	}
-	std::memcpy(&meshCount, _stream.data() + offset, sizeof(uint64_t));
+	std::memcpy(&meshCount, stream.data() + offset, sizeof(uint64_t));
 	offset += sizeof(uint64_t);
 
 	for (uint64_t i = 0; i < meshCount; i++)
@@ -752,63 +774,62 @@ IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::s
 		std::string name;
 
 		// 이름의 크기 읽기
-		if (offset + sizeof(uint64_t) > _stream.size())
+		if (offset + sizeof(uint64_t) > stream.size())
 		{
 			return IE::OUT_OF_POINTER_BOUNDARY;
 		}
-		std::memcpy(&nameSize, _stream.data() + offset, sizeof(uint64_t));
+		std::memcpy(&nameSize, stream.data() + offset, sizeof(uint64_t));
 		offset += sizeof(uint64_t);
 
 		// 이름 읽기
-		if (offset + nameSize > _stream.size())
+		if (offset + nameSize > stream.size())
 		{
 			return IE::OUT_OF_POINTER_BOUNDARY;
 		}
-		name = std::string(_stream.data() + offset, _stream.data() + offset + nameSize);
+		name = std::string(stream.data() + offset, stream.data() + offset + nameSize);
 		offset += name.size();
 
+
 		// 이미 있는지 체크
-		if (m_vBuffer.end() != m_vBuffer.find(name))
+		if (m_vBuffer.end() != m_vBuffer.find(_name))
 		{
 			continue;
 		}
 
-		_name = name;
-
 		// 정점 데이터의 크기
 		uint64_t vertexCount;
-		if (offset + sizeof(uint64_t) > _stream.size())
+		if (offset + sizeof(uint64_t) > stream.size())
 		{
 			return IE::OUT_OF_POINTER_BOUNDARY;
 		}
-		std::memcpy(&vertexCount, _stream.data() + offset, sizeof(uint64_t));
+		std::memcpy(&vertexCount, stream.data() + offset, sizeof(uint64_t));
 		offset += sizeof(uint64_t);
 		uint64_t vertexByteSize = sizeof(VertexPUN) * vertexCount;
 
 		// 정점 데이터
-		if (offset + vertexByteSize > _stream.size())
+		if (offset + vertexByteSize > stream.size())
 		{
 			return IE::OUT_OF_POINTER_BOUNDARY;
 		}
 		std::vector<VertexPUN> vertexData;
 		vertexData.resize(vertexCount);
-		std::memcpy(vertexData.data(), _stream.data() + offset, vertexByteSize);
+		std::memcpy(vertexData.data(), stream.data() + offset, vertexByteSize);
 		offset += vertexByteSize;
 
 		// 인덱스 데이터의 크기
-		if (offset + sizeof(uint64_t) > _stream.size())
+		if (offset + sizeof(uint64_t) > stream.size())
 		{
 			return IE::OUT_OF_POINTER_BOUNDARY;
 		}
 		uint64_t indexCount;
-		std::memcpy(&indexCount, _stream.data() + offset, sizeof(uint64_t));
+		std::memcpy(&indexCount, stream.data() + offset, sizeof(uint64_t));
 		offset += sizeof(uint64_t);
 		uint64_t indexByteSize = sizeof(int) * indexCount;
 
 		// 인덱스 데이터
 		std::vector<int> indexData;
 		indexData.resize(indexCount);
-		std::memcpy(indexData.data(), _stream.data() + offset, indexByteSize);
+		std::memcpy(indexData.data(), stream.data() + offset, indexByteSize);
 		offset += indexByteSize;
 
 		D3D11_BUFFER_DESC vb = {};
@@ -825,13 +846,13 @@ IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::s
 		hr = m_device->CreateBuffer(
 			&vb
 			, &vInitData
-			, m_vBuffer[name].first.GetAddressOf()
+			, m_vBuffer[_name].first.GetAddressOf()
 		);
 		if (S_OK != hr)
 		{
 			return IE::CREATE_D3D_BUFFER_FAIL;
 		}
-		m_vBuffer[name].second = sizeof(VertexPUN);
+		m_vBuffer[_name].second = sizeof(VertexPUN);
 
 
 		D3D11_BUFFER_DESC ib = {};
@@ -848,9 +869,9 @@ IE D3D11Renderer::CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::s
 		hr = m_device->CreateBuffer(
 			&ib
 			, &iInitData
-			, m_iBuffer[name].first.GetAddressOf()
+			, m_iBuffer[_name].first.GetAddressOf()
 		);
-		m_iBuffer[name].second = static_cast<UINT>(indexCount);
+		m_iBuffer[_name].second = static_cast<UINT>(indexCount);
 
 		if (S_OK != hr)
 		{
@@ -886,7 +907,7 @@ IE D3D11Renderer::SetRenderSize(UINT _w, UINT _h)
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::AddLight(const std::string& _name, const LightData& _lightData)
+IE D3D11Renderer::AddLight(const std::wstring& _name, const LightData& _lightData)
 {
 	HRESULT hr = S_OK;
 	ComPtr<ID3D11Buffer> lightBuffer;
@@ -1044,6 +1065,10 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 		, m_spotLightBuffer.m_srv
 	);
 
+	FileOpenCallbackFunc = _initalizeState.FileOpenCallbackFunc;
+
+	m_fms = _initalizeState.m_fms;
+
 	return IE::I_OK;
 }
 
@@ -1066,11 +1091,11 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 {
 	HRESULT hr = S_OK;
 
-	std::string format = _textuerData.m_name.substr(_textuerData.m_name.length() - 3, _textuerData.m_name.length());
+	std::wstring format = _textuerData.m_name.substr(_textuerData.m_name.length() - 3, _textuerData.m_name.length());
 	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
 
 	ComPtr<ID3D11ShaderResourceView> albedoSrv;
-	if ("dds" == format)
+	if (L"dds" == format)
 	{
 		hr = DirectX::CreateDDSTextureFromMemory(
 			m_device.Get()
@@ -1080,7 +1105,7 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 			, albedoSrv.GetAddressOf()
 		);
 	}
-	else if ("png" == format)
+	else if (L"png" == format)
 	{
 		hr = DirectX::CreateWICTextureFromMemory(
 			m_device.Get()
@@ -1101,7 +1126,7 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateMaterial(const std::string _name, const MaterialData& _material)
+IE D3D11Renderer::CreateMaterial(const std::wstring _name, const MaterialData& _material)
 {
 	if (nullptr == m_device)
 	{
@@ -1115,7 +1140,7 @@ IE D3D11Renderer::CreateMaterial(const std::string _name, const MaterialData& _m
 
 	HRESULT hr = S_OK;
 
-	std::string format = _name.substr(_name.length() - 3, _name.length());
+	std::wstring format = _name.substr(_name.length() - 3, _name.length());
 	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
 
 	IE ie = CreateTexture(_material.m_albedo);

@@ -66,6 +66,7 @@
     <ClInclude Include="CustomBuffer.h">
       <Filter>CustomBuffer</Filter>
     </ClInclude>
+    <ClInclude Include="stringUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -86,5 +87,6 @@
     <ClCompile Include="Vertex.cpp">
       <Filter>Vertex</Filter>
     </ClCompile>
+    <ClCompile Include="stringUtil.cpp" />
   </ItemGroup>
 </Project>

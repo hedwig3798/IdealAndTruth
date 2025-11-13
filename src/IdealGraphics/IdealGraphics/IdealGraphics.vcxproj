@@ -194,6 +194,7 @@ copy "$(MSBuildProjectDirectory)\IdealError.h" "$(SolutionDir)..\ExternLib\Ideal
     <ClInclude Include="pch.h" />
     <ClInclude Include="D3D11Renderer.h" />
     <ClInclude Include="RenameType.h" />
+    <ClInclude Include="stringUtil.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
@@ -207,6 +208,7 @@ copy "$(MSBuildProjectDirectory)\IdealError.h" "$(SolutionDir)..\ExternLib\Ideal
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="D3D11Renderer.cpp" />
+    <ClCompile Include="stringUtil.cpp" />
     <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

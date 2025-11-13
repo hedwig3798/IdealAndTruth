@@ -55,7 +55,7 @@ public:
 	/// </summary>
 	struct TextuerData
 	{
-		std::string m_name;
+		std::wstring m_name;
 		CONST_FILE_STREAM& m_data;
 	};
 	
@@ -74,11 +74,11 @@ public:
 	/// </summary>
 	struct IRenderObject
 	{
-		std::string m_name;
-		std::string m_vertexShader;
-		std::string m_pixelShader;
-		std::string m_mesh;
-		std::string m_material;
+		std::wstring m_name;
+		std::wstring m_vertexShader;
+		std::wstring m_pixelShader;
+		std::wstring m_mesh;
+		std::wstring m_material;
 		Matrix m_world;
 		bool m_isDraw;
 
@@ -140,6 +140,14 @@ public:
 	/// </summary>
 	struct InitializeState
 	{
+		bool(*FileOpenCallbackFunc)(
+			void* _fms
+			, const std::wstring& _filename
+			, OUT FILE_STREAM& fileData
+		);
+
+		void* m_fms;
+
 		UINT m_renderVectorSize;
 		UINT m_maxLightCount;
 
@@ -275,7 +283,7 @@ public:
 	/// 머테리얼 데이터 생성
 	/// </summary>
 	/// <returns>오브젝트 GUID</returns>
-	virtual IE CreateMaterial(const std::string _name, const MaterialData& _material) = 0;
+	virtual IE CreateMaterial(const std::wstring _name, const MaterialData& _material) = 0;
 
 	/// <summary>
 	/// 카메라 오브젝트 생성
@@ -319,7 +327,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreateVertexShader(VERTEX_TYPE _type, const std::string& _name, CONST_FILE_STREAM& _stream) = 0;
+	virtual IE CreateVertexShader(VERTEX_TYPE _type, const std::wstring& _name) = 0;
 
 	/// <summary>
 	/// 픽셀 셰이더 생성
@@ -327,7 +335,7 @@ public:
 	/// <param name="_name">셰이더 이름</param>
 	/// <param name="_stream">셰이더 데이터 스트림</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreatePixelShader(const std::string&, CONST_FILE_STREAM& _stream) = 0;
+	virtual IE CreatePixelShader(const std::wstring& _name) = 0;
 
 	/// <summary>
 	/// 정점 및 인덱스 버퍼 생성
@@ -335,7 +343,7 @@ public:
 	/// <param name="_name">매쉬 이름</param>
 	/// <param name="_stream">데이터</param>
 	/// <returns>성공 여부</returns>
-	virtual IE CreateVertexIndexBuffer(CONST_FILE_STREAM& _stream, OUT std::string& _name) = 0;
+	virtual IE CreateVertexIndexBuffer(const std::wstring& _name) = 0;
 
 	/// <summary>
 	/// 렌더링 오브젝트 추가
@@ -372,7 +380,7 @@ public:
 	/// <param name="_name">빛 이름</param>
 	/// <param name="_lightData">빛 데이터</param>
 	/// <returns>성공 여부</returns>
-	virtual IE AddLight(const std::string& _name, const LightData& _lightData) = 0;
+	virtual IE AddLight(const std::wstring& _name, const LightData& _lightData) = 0;
 };
 
 /// <summary>

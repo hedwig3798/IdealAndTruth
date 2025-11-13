@@ -60,15 +60,10 @@ void DemoProcess::Initialize(HWND _hwnd)
 	IE_ASSERT(m_renderer->SetBackgroundColor(0, 0, 0, 1));
 
 	// 정점 셰이더 생성
-	FILE_STREAM tempvs;
-	m_fms.OpenFile(L"DefaultVS.cso", tempvs);
-
-	IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, "DefaultVS", tempvs));
+	IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, L"DefaultVS.cso"));
 
 	// 픽셀 셰이더 생성
-	FILE_STREAM tempps;
-	m_fms.OpenFile(L"DefaultPS.cso", tempps);
-	IE_ASSERT(m_renderer->CreatePixelShader("DefaultPS", tempps));
+	IE_ASSERT(m_renderer->CreatePixelShader(L"DefaultPS.cso"));
 
 	// 카메라 생성
 	m_camera = m_renderer->CreateCamera();
@@ -77,21 +72,18 @@ void DemoProcess::Initialize(HWND _hwnd)
 	m_camera.lock()->SetAspectRatio(static_cast<float>(m_renderWidth) / static_cast<float>(m_renderHight));
 
 	// 정점 버퍼 생성
-	std::vector<unsigned char> tempVertex;
-	m_fms.OpenFile(L"gun.iver", tempVertex);
-	std::string meshName;
-	IE_ASSERT(m_renderer->CreateVertexIndexBuffer(tempVertex, meshName));
+	IE_ASSERT(m_renderer->CreateVertexIndexBuffer(L"gun.iver"));
 
 	// 머테리얼 데이터로 머테리얼 만들기
 	CreateMaterial(L"GunMaterial.lua");
 
 	// 매쉬 데이터 생성
 	m_tempRender->m_isDraw = true;
-	m_tempRender->m_mesh = meshName;
-	m_tempRender->m_vertexShader = "DefaultVS";
-	m_tempRender->m_pixelShader = "DefaultPS";
+	m_tempRender->m_mesh = L"gun.iver";
+	m_tempRender->m_vertexShader = L"DefaultVS.cso";
+	m_tempRender->m_pixelShader = L"DefaultPS.cso";
 	m_tempRender->m_world = Matrix::CreateScale(0.001f);
-	m_tempRender->m_material = "GunMaterial.lua";
+	m_tempRender->m_material = L"GunMaterial.lua";
 	
 	m_tempModel->m_isDraw = true;
 	m_tempModel->m_renderObjects.push_back(m_tempRender);
@@ -107,7 +99,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 	ld.m_color = { 1, 1, 1 };
 	ld.m_type = IRenderer::LIGHT_TYPE::DIRECTION;
 
-	m_renderer->AddLight("temp", ld);
+	m_renderer->AddLight(L"temp", ld);
 }
 
 void DemoProcess::Process()
@@ -301,6 +293,9 @@ void DemoProcess::CreateRendererState()
 	m_rendererState.m_renderTargetView = renderState;
 
 	m_rendererState.m_maxLightCount = 10;
+
+	m_rendererState.FileOpenCallbackFunc = DemoProcess::OpenFile;
+	m_rendererState.m_fms = static_cast<void*>(&m_fms);
 }
 
 void DemoProcess::FMSSetting()
@@ -407,11 +402,11 @@ void DemoProcess::CreateMaterial(const std::wstring& _path)
 	{
 		m_fms.OpenFile(::StrToWstr(albedo), albedoStream);
 	}
-	IRenderer::TextuerData albetotextuer{ albedo, albedoStream };
+	IRenderer::TextuerData albetotextuer{ ::StrToWstr(albedo), albedoStream };
 
 	IRenderer::MaterialData material{ {0,0,0,0},  albetotextuer };
 
-	m_renderer->CreateMaterial(::WstrToStr(_path), material);
+	m_renderer->CreateMaterial(_path, material);
 
 	return;
 }
@@ -474,4 +469,21 @@ LRESULT CALLBACK DemoProcess::WndProc(
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
+}
+
+bool DemoProcess::OpenFile(void* _fms, const std::wstring& _filename, OUT FILE_STREAM& _fileData)
+{
+	if (nullptr == _fms)
+	{
+		return false;
+	}
+
+	FileStorage* fms = static_cast<FileStorage*>(_fms);
+
+	if (nullptr == fms)
+	{
+		return false;
+	}
+
+	return fms->OpenFile(_filename, _fileData);
 }
