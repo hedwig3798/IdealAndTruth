@@ -79,7 +79,7 @@ public:
 		std::wstring m_pixelShader;
 		std::wstring m_mesh;
 		std::wstring m_material;
-		Matrix m_world;
+		Matrix m_meshtransform;
 		bool m_isDraw;
 
 		IRenderObject() = default;
@@ -129,7 +129,7 @@ public:
 	/// </summary>
 	struct IModelObject
 	{
-		std::string m_name;
+		std::wstring m_name;
 		std::vector<std::shared_ptr<IRenderObject>> m_renderObjects;
 		Matrix m_world;
 		bool m_isDraw;

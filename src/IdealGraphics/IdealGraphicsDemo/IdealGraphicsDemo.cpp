@@ -12,7 +12,6 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance,
 	_In_ LPTSTR	lpCmdLine,
 	_In_ int nCmdShow)
 {
-
 	// 디버깅을 위한 콘솔 창
 	::AllocConsole();
 	FILE* fp;
@@ -81,26 +80,38 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance,
 
 	SetWindowPos(hWnd, HWND_NOTOPMOST, nowRect.left, nowRect.top,
 		_newWidth, _newHeight, SWP_SHOWWINDOW);
-	demoProcess->Initialize(hWnd);
 
-
-
-	// 메시지 루프
-	while (TRUE)
+	try
 	{
-		// 기본 메세지 처리
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		demoProcess->Initialize(hWnd);
+		// 메시지 루프
+		while (TRUE)
 		{
-			DispatchMessage(&msg);
-			if (msg.message == WM_QUIT)
-				break;
+			// 기본 메세지 처리
+			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+			{
+				DispatchMessage(&msg);
+				if (msg.message == WM_QUIT)
+					break;
 
+			}
+			else
+			{
+				// 엔진 동작
+				demoProcess->Process();
+			}
 		}
-		else
-		{
-			// 엔진 동작
-			demoProcess->Process();
-		}
+	}
+	catch(const std::exception& e)
+	{
+		std::cout << "An unexpected exception occurred\n";
+		std::cout << e.what() << "\n";
+		std::cin.get();
+	}
+	catch (...)
+	{
+		std::cout << "An unexpected exception occurred\n";
+		std::cin.get();
 	}
 
 	// 프로그램 종료 전 엔진 반환

@@ -12,12 +12,25 @@
 #include "lua_tinker.h"
 #include "luaMacro.h"
 
+
 class IRenderer;
 class ManagerSet;
 
 class DemoProcess
 {
 private:
+
+	struct FileManagerSetting
+	{
+		bool m_isDevMode;
+		int m_threadCount;
+		int m_chunkSize;
+		std::wstring m_resourcePath;
+		std::wstring m_resourceOutputPath;
+		std::wstring m_outputFileName;
+		std::wstring m_Extension;
+	};
+
 	// 윈도우 핸들러
 	HWND m_hwnd;
 	IRenderer* m_renderer;
@@ -43,7 +56,7 @@ private:
 	static int m_currMouseMove[2];
 	static int m_oldMouseMove[2];
 	static int m_mouseMovement[2];
-	
+
 public:
 	// 생성자 소멸자
 	DemoProcess();
@@ -69,15 +82,28 @@ private:
 	void Update();
 	void Render();
 
+	/// <summary>
+	/// 렌더러 정보 입력
+	/// </summary>
 	void CreateRendererState();
+
+	/// <summary>
+	/// 세팅 값 가져오기
+	/// </summary>
+	void Settings();
 
 	/// <summary>
 	/// 파일 매니징 시스템 초기화
 	/// </summary>
-	void FMSSetting();
+	void FMSSetting(const FileManagerSetting& _settingValue);
 
 	/// <summary>
-	/// Lua Setting
+	/// Lua Start
+	/// </summary>
+	void LuaStart();
+
+	/// <summary>
+	/// Lua Start	
 	/// </summary>
 	void LuaSetting();
 
@@ -85,6 +111,12 @@ private:
 	/// DirectX Setting
 	/// </summary>
 	void D3DSetting();
+
+	/// <summary>
+	/// 씬 스크립트 읽기
+	/// </summary>
+	/// <param name="_name">씬 스크립트 이름</param>
+	void ReadScene(std::wstring _name);
 
 	/// <summary>
 	/// 윈도우 크기 조정

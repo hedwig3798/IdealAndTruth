@@ -1,4 +1,4 @@
-LIGHT_TYPE
+LIGHT_TYPE =
 {
     DIRECTION = 0,
     POINT = 1,

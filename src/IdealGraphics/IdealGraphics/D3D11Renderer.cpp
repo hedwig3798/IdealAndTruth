@@ -1091,7 +1091,15 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 {
 	HRESULT hr = S_OK;
 
-	std::wstring format = _textuerData.m_name.substr(_textuerData.m_name.length() - 3, _textuerData.m_name.length());
+	// 확장자 탐색. 가장 마지막 . 찾기
+	size_t pos = _textuerData.m_name.find_last_of('.');
+	if (pos == std::string::npos)
+	{
+		return IE::STREAM_ERROR;
+	}
+
+	// 확장자 분리
+	std::wstring format = _textuerData.m_name.substr(pos + 1);
 	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
 
 	ComPtr<ID3D11ShaderResourceView> albedoSrv;
@@ -1114,6 +1122,10 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 			, nullptr
 			, albedoSrv.GetAddressOf()
 		);
+	}
+	else
+	{
+		return IE::UNDEFINED_FILE_EXTENSION;
 	}
 
 	if (false == SUCCEEDED(hr))
@@ -1140,8 +1152,7 @@ IE D3D11Renderer::CreateMaterial(const std::wstring _name, const MaterialData& _
 
 	HRESULT hr = S_OK;
 
-	std::wstring format = _name.substr(_name.length() - 3, _name.length());
-	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
+
 
 	IE ie = CreateTexture(_material.m_albedo);
 
@@ -1296,7 +1307,7 @@ IE D3D11Renderer::Draw()
 			}
 
 			// 월드 행렬은 대부분 다르니 걍 바인딩
-			BindWorldBuffer(itr->m_world);
+			BindWorldBuffer(itr->m_meshtransform);
 
 			m_deviceContext->DrawIndexed(ib->second.second, 0, 0);
 		}

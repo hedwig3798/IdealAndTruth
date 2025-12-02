@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DemoProcess.h" />
+    <ClInclude Include="FilePathUtil.h" />
     <ClInclude Include="FileStorage.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="IdealGraphicsDemo.h" />
@@ -159,8 +160,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DemoProcess.cpp" />
+    <ClCompile Include="FilePathUtil.cpp" />
     <ClCompile Include="FileStorage.cpp" />
     <ClCompile Include="IdealGraphicsDemo.cpp" />
+    <ClCompile Include="luaMacro.cpp" />
     <ClCompile Include="lua_tinker.cpp" />
     <ClCompile Include="lz4.c" />
     <ClCompile Include="lz4hc.c" />

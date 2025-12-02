@@ -7,7 +7,8 @@ Material = "GunMaterial.lua"
 -- local transform
 Position = {0, 0, 0}
 Rotation = {0, 0, 0}
-Scale = {1, 1, 1}
+Scale = {0.001, 0.001, 0.001}
 
+-- Shader
 VertexShader = "DefaultVS.cso"
 PixelSahder = "DefaultPS.cso"

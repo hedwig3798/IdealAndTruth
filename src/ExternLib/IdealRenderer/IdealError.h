@@ -25,6 +25,8 @@ enum class IdealError
 	CREATE_D3D_SHAEDER_RESOURCE_VIEW_FAIL = 20,	// SRV 생성 실패
 	D3D_WRONG_BUFFER_ACCESS_FLAG = 21,			// D3D 버퍼에 접근 플래그 오류
 	OPEN_FILE_FAIL = 22,						// 파일 읽기 실패
+	STRING_ERROR = 23,							// 문자열 처리 에러
+	UNDEFINED_FILE_EXTENSION = 24,				// 알 수 없는 파일 확장자
 	UNKNOWN_ERROR,								// 알 수 없는 에러
 	END,
 };

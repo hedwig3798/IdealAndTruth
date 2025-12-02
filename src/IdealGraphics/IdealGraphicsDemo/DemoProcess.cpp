@@ -1,5 +1,6 @@
 ﻿#include "DemoProcess.h"
 #include "stringUtil.h"
+#include "FilePathUtil.h"
 
 bool DemoProcess::m_mouseDown[2] = { false, false };
 int DemoProcess::m_currMouseMove[2] = { 0, 0 };
@@ -34,10 +35,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 		return;
 	}
 
-	// 파일 세팅
-	FMSSetting();
-	// 루아 세팅
-	LuaSetting();
+	// 각종 세팅들
+	Settings();
 
 	m_hwnd = _hwnd;
 
@@ -78,18 +77,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 	CreateMaterial(L"GunMaterial.lua");
 
 	// 매쉬 데이터 생성
-	m_tempRender->m_isDraw = true;
-	m_tempRender->m_mesh = L"gun.iver";
-	m_tempRender->m_vertexShader = L"DefaultVS.cso";
-	m_tempRender->m_pixelShader = L"DefaultPS.cso";
-	m_tempRender->m_world = Matrix::CreateScale(0.001f);
-	m_tempRender->m_material = L"GunMaterial.lua";
-	
-	m_tempModel->m_isDraw = true;
-	m_tempModel->m_renderObjects.push_back(m_tempRender);
-	
-	m_renderer->AddModelObject(m_tempModel);
-
+	ReadScene(L"DemoScene.lua");
 	// 빛 테스트
 	m_renderer->SetMaxLightCount(10);
 
@@ -207,87 +195,88 @@ void DemoProcess::CreateRendererState()
 	DO_STREAM(m_luaState, s);
 
 	// 윈도우 설정
-	GET_LUA_TABLE_NEW(m_luaState, windowTable, "WindowSetting");
-	GET_VALUE_NEW(windowTable, width, "Width", int);
-	GET_VALUE_NEW(windowTable, height, "Height", int);
+	table windowTable = LuaValueGetter<table>::Get(m_luaState, "WindowSetting");
+	int width = LuaValueGetter<int>::Get(windowTable, "Width");
+	int height = LuaValueGetter<int>::Get(windowTable, "Height");
+
 	ResizeWindow(width, height);
 
 	m_renderWidth = width;
 	m_renderHight = height;
 
-	GET_LUA_TABLE_NEW(m_luaState, stateTable, "RendererInitializeState");
-	GET_VALUE(stateTable, m_rendererState.m_renderVectorSize, "RenderVectorSize", int);
+	table stateTable = LuaValueGetter<table>::Get(m_luaState, "RendererInitializeState");
+	m_rendererState.m_renderVectorSize = LuaValueGetter<int>::Get(stateTable, "RenderVectorSize");
 
 	// 디바이스 생성
 	IRenderer::InitializeState::Device deviceState = {};
 	deviceState.m_deviceFlags = 0;
-	GET_VALUE_NEW(stateTable, device, "Device", lua_tinker::table);
+	table device = LuaValueGetter<table>::Get(stateTable, "Device");
 	for (size_t i = 1; i <= device.size(); i++)
 	{
-		GET_VALUE_NEW(device, flag, static_cast<int>(i), UINT);
+		UINT flag = LuaValueGetter<UINT>::Get(device, i);
 		deviceState.m_deviceFlags |= flag;
 	}
 	m_rendererState.m_device = deviceState;
 
 	// 뎁스 스텐실 생성
 	IRenderer::InitializeState::DepthStancil depthState = {};
-	GET_VALUE_NEW(stateTable, depthStancil, "DepthStancil", lua_tinker::table);
+	table depthStancil = LuaValueGetter<table>::Get(stateTable, "DepthStancil");
 
 	depthState.m_width = width;
 	depthState.m_height = height;
-	GET_VALUE(depthStancil, depthState.m_mipLevel, "mipLevel", UINT);
-	GET_VALUE(depthStancil, depthState.m_arraySize, "arraySize", UINT);
-	GET_VALUE(depthStancil, depthState.m_format, "format", UINT);
-	GET_VALUE(depthStancil, depthState.m_sampleCount, "sampleCount", UINT);
-	GET_VALUE(depthStancil, depthState.m_sampleQuality, "sampleQuality", UINT);
-	GET_VALUE(depthStancil, depthState.m_usage, "usage", UINT);
+	depthState.m_mipLevel = LuaValueGetter<UINT>::Get(depthStancil, "mipLevel");
+	depthState.m_arraySize = LuaValueGetter<UINT>::Get(depthStancil, "arraySize");
+	depthState.m_format = LuaValueGetter<UINT>::Get(depthStancil, "format");
+	depthState.m_sampleCount = LuaValueGetter<UINT>::Get(depthStancil, "sampleCount");
+	depthState.m_sampleQuality = LuaValueGetter<UINT>::Get(depthStancil, "sampleQuality");
+	depthState.m_usage = LuaValueGetter<UINT>::Get(depthStancil, "usage");
 	m_rendererState.m_depthStancil = depthState;
 
 	// 스왑 체인 생성
 	IRenderer::InitializeState::SwapCahin swapState = {};
-	GET_VALUE_NEW(stateTable, swapCahin, "SwapCahin", lua_tinker::table);
+	table swapCahin = LuaValueGetter<table>::Get(stateTable, "SwapCahin");
 
 	swapState.m_width = width;
 	swapState.m_height = height;
-	GET_VALUE(swapCahin, swapState.m_refreshRateNumerator, "refreshRateNumerator", UINT);
-	GET_VALUE(swapCahin, swapState.m_refreshRateDenominator, "refreshRateDenominator", UINT);
-	GET_VALUE(swapCahin, swapState.m_format, "format", UINT);
-	GET_VALUE(swapCahin, swapState.m_scanlineOrdering, "scanlineOrdering", UINT);
-	GET_VALUE(swapCahin, swapState.m_scaling, "scaling", UINT);
-	GET_VALUE(swapCahin, swapState.m_sampleCount, "sampleCount", UINT);
-	GET_VALUE(swapCahin, swapState.m_sampleQuality, "sampleQuality", UINT);
-	GET_VALUE(swapCahin, swapState.m_bufferCount, "bufferCount", UINT);
-	GET_VALUE(swapCahin, swapState.m_swapEffect, "swapEffect", UINT);
-	GET_VALUE(swapCahin, swapState.m_isWindowed, "isWindowed", bool);
+	swapState.m_refreshRateNumerator = LuaValueGetter<UINT>::Get(swapCahin, "refreshRateNumerator");
+	swapState.m_refreshRateDenominator = LuaValueGetter<UINT>::Get(swapCahin, "refreshRateDenominator");
+	swapState.m_format = LuaValueGetter<UINT>::Get(swapCahin, "format");
+	swapState.m_scanlineOrdering = LuaValueGetter<UINT>::Get(swapCahin, "scanlineOrdering");
+	swapState.m_scaling = LuaValueGetter<UINT>::Get(swapCahin, "scaling");
+	swapState.m_sampleCount = LuaValueGetter<UINT>::Get(swapCahin, "sampleCount");
+	swapState.m_sampleQuality = LuaValueGetter<UINT>::Get(swapCahin, "sampleQuality");
+	swapState.m_bufferCount = LuaValueGetter<UINT>::Get(swapCahin, "bufferCount");
+	swapState.m_swapEffect = LuaValueGetter<UINT>::Get(swapCahin, "swapEffect");
+	swapState.m_isWindowed = LuaValueGetter<bool>::Get(swapCahin, "isWindowed");
 	m_rendererState.m_swapChain = swapState;
 
 	// 레스터라이저
 	IRenderer::InitializeState::RaseterizerState rasterState = {};
-	GET_VALUE_NEW(stateTable, rasterizser, "RaseterizerState", lua_tinker::table);
+	table rasterizser = LuaValueGetter<table>::Get(stateTable, "RaseterizerState");
 
-	GET_VALUE(rasterizser, rasterState.m_fillMode, "fillMode", UINT);
-	GET_VALUE(rasterizser, rasterState.m_cullMode, "cullMode", UINT);
-	GET_VALUE(rasterizser, rasterState.m_isFrontCCW, "isFrontCCW", bool);
-	GET_VALUE(rasterizser, rasterState.m_isDepthClip, "isDepthClip", bool);
+	rasterState.m_fillMode = LuaValueGetter<UINT>::Get(rasterizser, "fillMode");
+	rasterState.m_cullMode = LuaValueGetter<UINT>::Get(rasterizser, "cullMode");
+	rasterState.m_isFrontCCW = LuaValueGetter<bool>::Get(rasterizser, "isFrontCCW");
+	rasterState.m_isDepthClip = LuaValueGetter<bool>::Get(rasterizser, "isDepthClip");
 	m_rendererState.m_rasterizer = rasterState;
 
 	IRenderer::InitializeState::RenderTargetViewState renderState = {};
-	GET_VALUE_NEW(stateTable, renderTarget, "RenderTargetViewState", lua_tinker::table);
+	table renderTarget = LuaValueGetter<table>::Get(stateTable, "RenderTargetViewState");
 
 	renderState.m_width = width;
 	renderState.m_height = height;
-	GET_VALUE(renderTarget, renderState.m_mipLevel, "mipLevel", UINT);
-	GET_VALUE(renderTarget, renderState.m_arraySize, "arraySize", UINT);
-	GET_VALUE(renderTarget, renderState.m_format, "format", UINT);
-	GET_VALUE(renderTarget, renderState.m_sampleCount, "sampleCount", UINT);
-	GET_VALUE(renderTarget, renderState.m_usage, "usage", UINT);
-	GET_VALUE(renderTarget, renderState.m_viewDimension, "viewDimension", UINT);
+	renderState.m_mipLevel = LuaValueGetter<UINT>::Get(renderTarget, "mipLevel");
+	renderState.m_arraySize = LuaValueGetter<UINT>::Get(renderTarget, "arraySize");
+	renderState.m_format = LuaValueGetter<UINT>::Get(renderTarget, "format");
+	renderState.m_sampleCount = LuaValueGetter<UINT>::Get(renderTarget, "sampleCount");
+	renderState.m_usage = LuaValueGetter<UINT>::Get(renderTarget, "usage");
+	renderState.m_viewDimension = LuaValueGetter<UINT>::Get(renderTarget, "viewDimension");
 
-	GET_VALUE_NEW(renderTarget, binflags, "bindFlags", lua_tinker::table);
+	table binflags = LuaValueGetter<table>::Get(renderTarget, "bindFlags");
 	renderState.m_bindFlags = 0;
 	for (size_t i = 1; i <= device.size(); i++)
 	{
-		GET_VALUE_NEW(binflags, flag, static_cast<int>(i), UINT);
+		UINT flag = LuaValueGetter<UINT>::Get(binflags, i);
 		renderState.m_bindFlags |= flag;
 	}
 	m_rendererState.m_renderTargetView = renderState;
@@ -298,30 +287,102 @@ void DemoProcess::CreateRendererState()
 	m_rendererState.m_fms = static_cast<void*>(&m_fms);
 }
 
-void DemoProcess::FMSSetting()
+void DemoProcess::Settings()
 {
-	std::string exePath = ::GetExeDirectoryPath();
-	std::wstring resPath = ::StrToWstr(exePath) + L"\\..\\..\\Resource";
-	std::wstring resOutputPath = ::StrToWstr(exePath) + L"\\..\\Resource";
+	// 루아
+	LuaStart();
 
-	m_fms.SetThreadCount(4);
-	m_fms.SetChunkSize(1024);
-	m_fms.SetOutputFileName(L"IRenderer_");
-	m_fms.SetCompressExtension(L".rcom");
-	m_fms.SetCompressFilePath(resOutputPath);
-
-	if (false == m_fms.CompressAll(resPath))
+	// 세팅 파일 읽어오기
+	if (nullptr == m_luaState)
 	{
+		std::cout << "No Lua State At Setting Process\n";
+		return;
+	}
+
+	std::string settingFilePath = ::GetExeDir();
+	settingFilePath += "\\Settings.lua";
+
+	std::ifstream settingFile(settingFilePath, std::ios::binary);
+	if (false == settingFile.is_open())
+	{
+		return;
+	}
+	// 포인터를 파일의 끝으로 옮겨서 파일 크기 구하기
+	settingFile.seekg(0, std::ios::end);
+	uint64_t fileSize = settingFile.tellg();
+	settingFile.seekg(0, std::ios::beg);
+
+	// 파일 데이터 읽기
+	std::vector<char> fileData;
+	fileData.resize(fileSize);
+	settingFile.read(reinterpret_cast<char*>(fileData.data()), fileSize);
+
+	lua_tinker::dobuffer(m_luaState, fileData.data(), fileSize);
+
+	// 세팅 파일에서 세팅 값 가져오기
+	FileManagerSetting fs;
+	fs.m_resourcePath = LuaValueGetter<std::wstring>::Get(m_luaState, "ResourcePath");
+	fs.m_resourceOutputPath = LuaValueGetter<std::wstring>::Get(m_luaState, "ResourceOutputPath");
+	fs.m_outputFileName = LuaValueGetter<std::wstring>::Get(m_luaState, "OutputFileName");
+	fs.m_Extension = LuaValueGetter<std::wstring>::Get(m_luaState, "Extension");
+	fs.m_threadCount = LuaValueGetter<int>::Get(m_luaState, "ThreadCount");
+	fs.m_chunkSize = LuaValueGetter<int>::Get(m_luaState, "ChunkSize");
+	fs.m_isDevMode = LuaValueGetter<bool>::Get(m_luaState, "DevMode");
+
+	// 파일 세팅
+	FMSSetting(fs);
+
+	LuaSetting();
+
+	// D3D 세팅
+	// TODO : 다른 그래픽 API 사용 시 바꿀 것
+	D3DSetting();
+}
+
+void DemoProcess::FMSSetting(const FileManagerSetting& _settingValue)
+{
+	if (true == _settingValue.m_isDevMode)
+	{
+		m_fms.ResetDevFileMap(_settingValue.m_resourcePath);
+		m_fms.SetDevMode(_settingValue.m_isDevMode);
+		return;
+	}
+
+	m_fms.SetThreadCount(_settingValue.m_threadCount);
+	m_fms.SetChunkSize(_settingValue.m_chunkSize);
+	m_fms.SetOutputFileName(_settingValue.m_outputFileName);
+	m_fms.SetCompressExtension(_settingValue.m_Extension);
+	m_fms.SetCompressFilePath(_settingValue.m_resourcePath);
+
+	if (false == m_fms.CompressAll(_settingValue.m_resourceOutputPath))
+	{
+		std::cout << "fail to CompressFile\n";
 		return;
 	}
 }
 
-void DemoProcess::LuaSetting()
+void DemoProcess::LuaStart()
 {
 	m_luaState = ::luaL_newstate();
 	::luaL_openlibs(m_luaState);
+}
 
-	D3DSetting();
+void DemoProcess::LuaSetting()
+{
+	if (nullptr == m_luaState)
+	{
+		return;
+	}
+
+	std::vector<unsigned char> enumLua;
+	m_fms.OpenFile(L"Enum.lua", enumLua);
+	if (true == enumLua.empty())
+	{
+		std::cout << "cannot open Enum.lua\n";
+		return;
+	}
+
+	DO_STREAM(m_luaState, enumLua);
 }
 
 void DemoProcess::D3DSetting()
@@ -340,6 +401,118 @@ void DemoProcess::D3DSetting()
 	}
 
 	DO_STREAM(m_luaState, enumSetting);
+}
+
+void DemoProcess::ReadScene(std::wstring _name)
+{
+	// 루아 체크
+	if (nullptr == m_luaState)
+	{
+		return;
+	}
+
+	// 씬 스크립트 읽기
+	FILE_STREAM fs;
+	m_fms.OpenFile(_name, fs);
+
+	// 읽기 실패
+	if (0 == fs.size())
+	{
+		return;
+	}
+
+	// lua state 를 통해 읽기
+	DO_STREAM(m_luaState, fs);
+
+	std::shared_ptr<IRenderer::IModelObject> modelObject = std::make_shared<IRenderer::IModelObject>();
+	modelObject->m_name = _name;
+	// 모델 데이터
+	table models = LuaValueGetter<table>::Get(m_luaState, "Model");
+	for (size_t i = 1; i <= models.size(); i++)
+	{
+		// 각 모델에 들어갈 매쉬의 이름
+		table model = LuaValueGetter<table>::Get(models, i);
+
+		// 매쉬 파일 이름
+		std::string name = LuaValueGetter<std::string>::Get(model, "name");
+
+		// 매쉬의 월드 변환 행렬
+		Vector3 position = LuaValueGetter<Vector3>::Get(model, "Position");
+		Vector3 rotation = LuaValueGetter<Vector3>::Get(model, "Rotation");
+		Vector3 scale = LuaValueGetter<Vector3>::Get(model, "Scale");
+
+		modelObject->m_world = Matrix::Identity;
+		modelObject->m_world *= Matrix::CreateScale(scale);
+		modelObject->m_world *= Matrix::CreateFromYawPitchRoll(rotation);
+		modelObject->m_world *= Matrix::CreateTranslation(position);
+
+		// 매쉬 파일 읽기
+		FILE_STREAM meshFS;
+		m_fms.OpenFile(::StrToWstr(name), meshFS);
+		if (0 == meshFS.size())
+		{
+			return;
+		}
+
+		DO_STREAM(m_luaState, meshFS);
+
+		std::shared_ptr<IRenderer::IRenderObject> renderObject = std::make_shared<IRenderer::IRenderObject>();
+		renderObject->m_isDraw = true;
+		renderObject->m_mesh = LuaValueGetter<std::wstring>::Get(m_luaState, "Mesh");
+		renderObject->m_vertexShader = LuaValueGetter<std::wstring>::Get(m_luaState, "VertexShader");
+		renderObject->m_pixelShader = LuaValueGetter<std::wstring>::Get(m_luaState, "PixelSahder");
+		renderObject->m_material = LuaValueGetter<std::wstring>::Get(m_luaState, "Material");
+
+		m_renderer->CreateVertexIndexBuffer(renderObject->m_mesh);
+		m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, renderObject->m_vertexShader);
+		m_renderer->CreatePixelShader(renderObject->m_pixelShader);
+
+		position = LuaValueGetter<Vector3>::Get(m_luaState, "Position");
+		rotation = LuaValueGetter<Vector3>::Get(m_luaState, "Rotation");
+		scale = LuaValueGetter<Vector3>::Get(m_luaState, "Scale");
+
+		renderObject->m_meshtransform = Matrix::Identity;
+		renderObject->m_meshtransform *= Matrix::CreateScale(scale);
+		renderObject->m_meshtransform *= Matrix::CreateFromYawPitchRoll(rotation);
+		renderObject->m_meshtransform *= Matrix::CreateTranslation(position);
+
+		// 머테리얼 데이터
+		FILE_STREAM materialFS;
+		m_fms.OpenFile(renderObject->m_material, materialFS);
+		if (0 == materialFS.size())
+		{
+			return;
+		}
+		DO_STREAM(m_luaState, materialFS);
+
+		table albedoTable = LuaValueGetter<table>::Get(m_luaState, "Textures");
+		std::wstring albedoName = ::StrToWstr(LuaValueGetter<std::string>::Get(albedoTable, "albedo"));
+
+		FILE_STREAM textuerStream;
+		m_fms.OpenFile(albedoName, textuerStream);
+
+		IRenderer::TextuerData albedoData{ albedoName, textuerStream };
+		IRenderer::MaterialData materialData{ {0, 0, 0, 1}, albedoData };
+
+		m_renderer->CreateMaterial(renderObject->m_material, materialData);
+
+		modelObject->m_isDraw = true;
+		modelObject->m_renderObjects.push_back(renderObject);
+	}
+
+	m_renderer->AddModelObject(modelObject);
+
+	table lights = LuaValueGetter<table>::Get(m_luaState, "Light");
+	for (size_t i = 1; i <= lights.size(); i++)
+	{
+		table light = LuaValueGetter<table>::Get(lights, i);
+		UINT type = LuaValueGetter<UINT>::Get(lights, "type");
+		float intensity = LuaValueGetter<float>::Get(lights, "intensity");
+		Vector3 color = LuaValueGetter<Vector3>::Get(lights, "color");
+		Vector3 direction = LuaValueGetter<Vector3>::Get(lights, "direction");
+
+		// 이후 빛 데이터 렌더러에 전달하기
+	}
 }
 
 void DemoProcess::ResizeWindow(int _width, int _hight)
@@ -396,17 +569,19 @@ void DemoProcess::CreateMaterial(const std::wstring& _path)
 	DO_STREAM(m_luaState, s);
 
 	FILE_STREAM albedoStream = FILE_STREAM();
-	GET_LUA_TABLE_NEW(m_luaState, textuers, "Textuers");
-	GET_VALUE_NEW(textuers, albedo, "albedo", std::string);
+	table textuers = LuaValueGetter<table>::Get(m_luaState, "Textuers");
+	std::wstring albedo = LuaValueGetter<std::wstring>::Get(textuers, "albedo");
+
 	if (0 != albedo.size())
 	{
-		m_fms.OpenFile(::StrToWstr(albedo), albedoStream);
+		m_fms.OpenFile(albedo, albedoStream);
 	}
-	IRenderer::TextuerData albetotextuer{ ::StrToWstr(albedo), albedoStream };
+	IRenderer::TextuerData albetotextuer{ albedo, albedoStream };
 
 	IRenderer::MaterialData material{ {0,0,0,0},  albetotextuer };
 
 	m_renderer->CreateMaterial(_path, material);
+
 
 	return;
 }
