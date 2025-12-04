@@ -55,6 +55,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 	// 초기화
 	IE_ASSERT(m_renderer->Initialize(m_rendererState, m_hwnd));
 
+	ImguiInitialize();
+
 	// 생성 할 수 있는 빛의 최대 갯수
 	m_renderer->SetMaxLightCount(10);
 
@@ -94,6 +96,7 @@ void DemoProcess::Process()
 
 void DemoProcess::Update()
 {
+	ImguiUpdate();
 	// 임시 카메라 움직임 제어
 	// 나중에 매니져 클래스로 뺄 예정
 	if (true == m_camera.expired())
@@ -176,6 +179,33 @@ void DemoProcess::Render()
 	// this->graphicsEngine->endDraw();
 	// 
 	// int test = 0;
+}
+
+void DemoProcess::ImguiUpdate()
+{
+	::ImGui_ImplDX11_NewFrame();
+	::ImGui_ImplWin32_NewFrame();
+
+	ImGui::NewFrame();
+	static float f = 0.0f;
+	static int counter = 0;
+
+	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+
+	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+
+	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+		counter++;
+
+	ImGui::SameLine();
+	ImGui::Text("counter = %d", counter);
+
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 void DemoProcess::CreateRendererState()
@@ -286,7 +316,7 @@ void DemoProcess::CreateRendererState()
 void DemoProcess::Settings()
 {
 	// 루아
-	LuaStart();
+	Luainitialize();
 
 	// 세팅 파일 읽어오기
 	if (nullptr == m_luaState)
@@ -358,10 +388,35 @@ void DemoProcess::FMSSetting(const FileManagerSetting& _settingValue)
 	}
 }
 
-void DemoProcess::LuaStart()
+void DemoProcess::Luainitialize()
 {
 	m_luaState = ::luaL_newstate();
 	::luaL_openlibs(m_luaState);
+}
+
+void DemoProcess::ImguiInitialize()
+{
+	::ImGui_ImplWin32_EnableDpiAwareness();
+	float main_scale = ::ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsLight();
+
+	// Setup scaling
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+	style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+
+	// Setup Platform/Renderer backends
+	::ImGui_ImplWin32_Init(m_hwnd);
+	IE_ASSERT(m_renderer->ImguiInitialize(::ImGui_ImplDX11_Init));
 }
 
 void DemoProcess::LuaSetting()
@@ -573,7 +628,7 @@ void DemoProcess::CreateMaterial(const std::wstring& _path)
 	DO_STREAM(m_luaState, s);
 
 	FILE_STREAM albedoStream = FILE_STREAM();
-	table textuers = LuaValueGetter<table>::Get(m_luaState, "Textuers");
+	table textuers = LuaValueGetter<table>::Get(m_luaState, "Textures");
 	std::wstring albedo = LuaValueGetter<std::wstring>::Get(textuers, "albedo");
 
 	if (0 != albedo.size())

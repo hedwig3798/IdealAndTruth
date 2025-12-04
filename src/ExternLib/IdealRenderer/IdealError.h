@@ -27,6 +27,7 @@ enum class IdealError
 	OPEN_FILE_FAIL = 22,						// 파일 읽기 실패
 	STRING_ERROR = 23,							// 문자열 처리 에러
 	UNDEFINED_FILE_EXTENSION = 24,				// 알 수 없는 파일 확장자
+	IMGUI_FAIL = 25,							// Imgui 에러
 	UNKNOWN_ERROR,								// 알 수 없는 에러
 	END,
 };

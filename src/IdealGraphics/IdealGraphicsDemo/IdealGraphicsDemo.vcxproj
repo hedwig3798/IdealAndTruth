@@ -149,6 +149,14 @@
     <ClInclude Include="FileStorage.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="IdealGraphicsDemo.h" />
+    <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imgui_impl_dx11.h" />
+    <ClInclude Include="imgui_impl_win32.h" />
+    <ClInclude Include="imgui_internal.h" />
+    <ClInclude Include="imstb_rectpack.h" />
+    <ClInclude Include="imstb_textedit.h" />
+    <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="luaMacro.h" />
     <ClInclude Include="lua_tinker.h" />
     <ClInclude Include="lz4.h" />
@@ -163,6 +171,12 @@
     <ClCompile Include="FilePathUtil.cpp" />
     <ClCompile Include="FileStorage.cpp" />
     <ClCompile Include="IdealGraphicsDemo.cpp" />
+    <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_draw.cpp" />
+    <ClCompile Include="imgui_impl_dx11.cpp" />
+    <ClCompile Include="imgui_impl_win32.cpp" />
+    <ClCompile Include="imgui_tables.cpp" />
+    <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="luaMacro.cpp" />
     <ClCompile Include="lua_tinker.cpp" />
     <ClCompile Include="lz4.c" />

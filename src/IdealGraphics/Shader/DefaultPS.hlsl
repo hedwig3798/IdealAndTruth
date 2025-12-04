@@ -33,10 +33,10 @@ float4 main(VertexOut pin)
         lightInput.D = length(lightDirVec);
         lightInput.L = normalize(lightDirVec);
         lightInput.H = normalize(lightInput.L + lightInput.V);
-        lightInput.R = g_PointLights[p].m_range;
-        lightInput.A = g_PointLights[p].m_attenuation;
+        lightInput.range = g_PointLights[p].m_range;
+        lightInput.att = g_PointLights[p].m_attenuation;
         
-        PointLightCalculate(lightInput, diff, spec);
+        // PointLightCalculate(lightInput, diff, spec);
     }
     
     
@@ -48,9 +48,9 @@ float4 main(VertexOut pin)
         lightInput.D = length(lightDirVec);
         lightInput.L = normalize(lightDirVec);
         lightInput.H = normalize(lightInput.L + lightInput.V);
-        lightInput.A = g_SpotLights[s].m_attenuation;
+        lightInput.att = g_SpotLights[s].m_attenuation;
         
-        SpotLightCalculate(lightInput, diff, spec);
+        // SpotLightCalculate(lightInput, diff, spec);
     }
     
     // a, d, s

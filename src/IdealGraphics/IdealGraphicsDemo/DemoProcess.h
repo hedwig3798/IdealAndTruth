@@ -12,6 +12,9 @@
 #include "lua_tinker.h"
 #include "luaMacro.h"
 
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 
 class IRenderer;
 class ManagerSet;
@@ -77,10 +80,17 @@ public:
 		, OUT FILE_STREAM& _fileData
 	);
 
+
+
 private:
 	// 실제 수행되는 함수
 	void Update();
 	void Render();
+
+	/// <summary>
+	/// imgui ui 라이브러리 업데이트 함수
+	/// </summary>
+	void ImguiUpdate();
 
 	/// <summary>
 	/// 렌더러 정보 입력
@@ -100,7 +110,12 @@ private:
 	/// <summary>
 	/// Lua Start
 	/// </summary>
-	void LuaStart();
+	void Luainitialize();
+	
+	/// <summary>
+	/// imgui ui start
+	/// </summary>
+	void ImguiInitialize();
 
 	/// <summary>
 	/// Lua Start	

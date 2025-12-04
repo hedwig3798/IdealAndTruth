@@ -15,6 +15,7 @@
 #include "CustomBuffer.h"
 #include "DXTK/DDSTextureLoader.h"
 #include "DXTK/WICTextureLoader.h"
+
 using Microsoft::WRL::ComPtr;
 
 class D3D11Renderer :
@@ -412,7 +413,7 @@ public:
 	/// 한 씬에 존재할 수 있는 빛의 총 갯수
 	/// </summary>
 	/// <param name="_val">갯수</param>
-	void SetMaxLightCount(uint64_t _val) { m_maxLightCount = _val; };
+	void SetMaxLightCount(uint64_t _val) override { m_maxLightCount = _val; };
 
 	/// <summary>
 	/// 씬에 빛 추가
@@ -420,6 +421,18 @@ public:
 	/// <param name="_name">빛 이름</param>
 	/// <param name="_lightData">빛 데이터</param>
 	/// <returns>성공 여부</returns>
-	IE AddLight(const std::wstring& _name, const LightData& _lightData);
+	IE AddLight(const std::wstring& _name, const LightData& _lightData) override;
+
+	/// <summary>
+	/// Imgui 시작을 위한 함수
+	/// </summary>
+	/// <param name="ImguiStartFunc">imgui start function</param>
+	/// <returns>성공 여부</returns>
+	IE ImguiInitialize(
+		bool(*ImguiStartFunc)(
+			ID3D11Device* _device
+			, ID3D11DeviceContext* _deviceContext
+			)
+	) override;
 };
 

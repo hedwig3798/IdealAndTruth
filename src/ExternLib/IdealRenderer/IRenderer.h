@@ -20,6 +20,9 @@ using namespace DirectX::SimpleMath;
 typedef const std::vector<unsigned char> CONST_FILE_STREAM;
 typedef std::vector<unsigned char> FILE_STREAM;
 
+struct ID3D11Device;
+struct ID3D11DeviceContext;
+
 class IRenderer
 {
 public:
@@ -381,6 +384,18 @@ public:
 	/// <param name="_lightData">빛 데이터</param>
 	/// <returns>성공 여부</returns>
 	virtual IE AddLight(const std::wstring& _name, const LightData& _lightData) = 0;
+
+	/// <summary>
+	/// Imgui 시작을 위한 함수
+	/// </summary>
+	/// <param name="ImguiStartFunc">imgui start function</param>
+	/// <returns>성공 여부</returns>
+	virtual IE ImguiInitialize(
+		bool(*ImguiStartFunc)(
+			ID3D11Device* _device
+			, ID3D11DeviceContext* _deviceContext
+			)
+	) = 0;
 };
 
 /// <summary>

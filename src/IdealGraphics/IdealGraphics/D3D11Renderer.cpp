@@ -994,6 +994,25 @@ IE D3D11Renderer::AddLight(const std::wstring& _name, const LightData& _lightDat
 	return ie;
 }
 
+IE D3D11Renderer::ImguiInitialize(bool(*ImguiStartFunc)(ID3D11Device* _device, ID3D11DeviceContext* _deviceContext))
+{
+	if (nullptr == m_device
+		|| nullptr == m_deviceContext)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	bool isSuccess = ImguiStartFunc(m_device.Get(), m_deviceContext.Get());
+
+	if (false == isSuccess)
+	{
+		return IE::IMGUI_FAIL;
+	}
+
+	return IE::I_OK;
+}
+
+
 IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 {
 	m_hwnd = _hwnd;
@@ -1263,9 +1282,9 @@ IE D3D11Renderer::Draw()
 		|| m_lightCountData.m_numPoint != m_pointLightVector.size()
 		|| m_lightCountData.m_numSpot != m_spotLightVector.size())
 	{
-		m_lightCountData.m_numDirection = m_dirctionLightVector.size();
-		m_lightCountData.m_numPoint = m_pointLightVector.size();
-		m_lightCountData.m_numSpot = m_spotLightVector.size();
+		m_lightCountData.m_numDirection = static_cast<int>(m_dirctionLightVector.size());
+		m_lightCountData.m_numPoint = static_cast<int>(m_pointLightVector.size());
+		m_lightCountData.m_numSpot = static_cast<int>(m_spotLightVector.size());
 
 		BindDataBuffer(
 			m_lightCountBuffer
