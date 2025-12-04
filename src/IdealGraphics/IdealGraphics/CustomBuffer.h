@@ -62,3 +62,15 @@ struct SpotLightBufferData
 
 	Vector3 pad;
 };
+
+/// <summary>
+/// ºûÀÇ °¹¼ö ¹öÆÛ
+/// </summary>
+struct LightCountBuffer
+{
+	int m_numDirection;
+	int m_numPoint;
+	int m_numSpot;
+
+	int pad;
+};

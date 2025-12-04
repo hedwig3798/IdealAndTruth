@@ -13,6 +13,9 @@
     <Filter Include="Buffers">
       <UniqueIdentifier>{f19bf199-2909-40ed-a4cd-a3565539669e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{811a9dc0-052f-4c18-b0c0-44ee58cd8297}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DefaultVS.hlsl">
@@ -27,5 +30,10 @@
     <FxCompile Include="Buffers.hlsl">
       <Filter>Buffers</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Light.hlsli">
+      <Filter>Light</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -120,6 +120,10 @@ private:
 
 	ComPtr<ID3D11Buffer> m_worldBuffer;
 
+	// light count buffer
+	ComPtr<ID3D11Buffer> m_lightCountBuffer;
+	LightCountBuffer m_lightCountData;
+
 	UINT m_renderWidth;
 	UINT m_renderHight;
 
@@ -192,7 +196,7 @@ private:
 	/// <param name="_bufferSize">필요한 사이즈</param>
 	/// <param name="_buffer">생성될 버퍼</param>
 	/// <returns>성공 여부</returns>
-	IE CreateBuffer(uint64_t _bufferSize, OUT ComPtr<ID3D11Buffer> _buffer, void* _initData = nullptr);
+	IE CreateBuffer(uint64_t _bufferSize, OUT ComPtr<ID3D11Buffer>& _buffer, void* _initData = nullptr);
 
 	/// <summary>
 	/// StructedBuffer 생성
@@ -231,6 +235,13 @@ private:
 	/// <returns>성공 여부</returns>
 	IE BindWorldBuffer(const Matrix& _matrix);
 
+	/// <summary>
+	/// 데이터를 버퍼에 바인딩
+	/// </summary>
+	/// <param name="_buffer">버퍼</param>
+	/// <param name="_data">데이터</param>
+	/// <param name="_size">크기</param>
+	/// <returns>성공 여부</returns>
 	IE BindDataBuffer(
 		ComPtr<ID3D11Buffer> _buffer
 		, void* _data

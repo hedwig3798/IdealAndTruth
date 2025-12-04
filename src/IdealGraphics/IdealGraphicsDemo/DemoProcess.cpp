@@ -55,6 +55,9 @@ void DemoProcess::Initialize(HWND _hwnd)
 	// 초기화
 	IE_ASSERT(m_renderer->Initialize(m_rendererState, m_hwnd));
 
+	// 생성 할 수 있는 빛의 최대 갯수
+	m_renderer->SetMaxLightCount(10);
+
 	// 뒷배경 색
 	IE_ASSERT(m_renderer->SetBackgroundColor(0, 0, 0, 1));
 
@@ -79,15 +82,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 	// 매쉬 데이터 생성
 	ReadScene(L"DemoScene.lua");
 	// 빛 테스트
-	m_renderer->SetMaxLightCount(10);
 
-	IRenderer::LightData ld;
-	ld.m_direction = {0, -1, 0};
-	ld.m_intensity = 1.0f;
-	ld.m_color = { 1, 1, 1 };
-	ld.m_type = IRenderer::LIGHT_TYPE::DIRECTION;
-
-	m_renderer->AddLight(L"temp", ld);
+	// m_renderer->AddLight(L"temp", ld);
 }
 
 void DemoProcess::Process()
@@ -332,6 +328,7 @@ void DemoProcess::Settings()
 	// 파일 세팅
 	FMSSetting(fs);
 
+	// 세팅 파일 생성
 	LuaSetting();
 
 	// D3D 세팅
@@ -463,9 +460,9 @@ void DemoProcess::ReadScene(std::wstring _name)
 		renderObject->m_pixelShader = LuaValueGetter<std::wstring>::Get(m_luaState, "PixelSahder");
 		renderObject->m_material = LuaValueGetter<std::wstring>::Get(m_luaState, "Material");
 
-		m_renderer->CreateVertexIndexBuffer(renderObject->m_mesh);
-		m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, renderObject->m_vertexShader);
-		m_renderer->CreatePixelShader(renderObject->m_pixelShader);
+		IE_ASSERT(m_renderer->CreateVertexIndexBuffer(renderObject->m_mesh));
+		IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, renderObject->m_vertexShader));
+		IE_ASSERT(m_renderer->CreatePixelShader(renderObject->m_pixelShader));
 
 		position = LuaValueGetter<Vector3>::Get(m_luaState, "Position");
 		rotation = LuaValueGetter<Vector3>::Get(m_luaState, "Rotation");
@@ -486,7 +483,7 @@ void DemoProcess::ReadScene(std::wstring _name)
 		DO_STREAM(m_luaState, materialFS);
 
 		table albedoTable = LuaValueGetter<table>::Get(m_luaState, "Textures");
-		std::wstring albedoName = ::StrToWstr(LuaValueGetter<std::string>::Get(albedoTable, "albedo"));
+		std::wstring albedoName = LuaValueGetter<std::wstring>::Get(albedoTable, "albedo");
 
 		FILE_STREAM textuerStream;
 		m_fms.OpenFile(albedoName, textuerStream);
@@ -494,24 +491,31 @@ void DemoProcess::ReadScene(std::wstring _name)
 		IRenderer::TextuerData albedoData{ albedoName, textuerStream };
 		IRenderer::MaterialData materialData{ {0, 0, 0, 1}, albedoData };
 
-		m_renderer->CreateMaterial(renderObject->m_material, materialData);
+		IE_ASSERT(m_renderer->CreateMaterial(renderObject->m_material, materialData));
 
 		modelObject->m_isDraw = true;
 		modelObject->m_renderObjects.push_back(renderObject);
 	}
 
-	m_renderer->AddModelObject(modelObject);
+	IE_ASSERT(m_renderer->AddModelObject(modelObject));
 
 	table lights = LuaValueGetter<table>::Get(m_luaState, "Light");
 	for (size_t i = 1; i <= lights.size(); i++)
 	{
+		IRenderer::LightData ld;
+
 		table light = LuaValueGetter<table>::Get(lights, i);
-		UINT type = LuaValueGetter<UINT>::Get(lights, "type");
-		float intensity = LuaValueGetter<float>::Get(lights, "intensity");
-		Vector3 color = LuaValueGetter<Vector3>::Get(lights, "color");
-		Vector3 direction = LuaValueGetter<Vector3>::Get(lights, "direction");
+		ld.m_type = static_cast<IRenderer::LIGHT_TYPE>(LuaValueGetter<UINT>::Get(light, "type"));
+		ld.m_intensity = LuaValueGetter<float>::Get(light, "intensity");
+		ld.m_attenuation = LuaValueGetter<float>::Get(light, "attenuation");
+		ld.m_inAngle = LuaValueGetter<float>::Get(light, "inAngle");
+		ld.m_range = LuaValueGetter<float>::Get(light, "range");
+		ld.m_color = LuaValueGetter<Vector3>::Get(light, "color");
+		ld.m_direction = LuaValueGetter<Vector3>::Get(light, "direction");
+		ld.m_position = LuaValueGetter<Vector3>::Get(light, "position");
 
 		// 이후 빛 데이터 렌더러에 전달하기
+		IE_ASSERT(m_renderer->AddLight(L"temp", ld));
 	}
 }
 
@@ -580,8 +584,7 @@ void DemoProcess::CreateMaterial(const std::wstring& _path)
 
 	IRenderer::MaterialData material{ {0,0,0,0},  albetotextuer };
 
-	m_renderer->CreateMaterial(_path, material);
-
+	IE_ASSERT(m_renderer->CreateMaterial(_path, material));
 
 	return;
 }

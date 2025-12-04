@@ -17,6 +17,7 @@ D3D11Renderer::D3D11Renderer()
 	, m_defaultBG{ 1, 1, 1, 1 }
 	, m_currentRenderSet()
 	, m_maxLightCount(1)
+	, m_lightCountData{ 0, 0, 0 }
 {
 
 }
@@ -345,7 +346,7 @@ IE D3D11Renderer::CreateWorldBuffer()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateBuffer(uint64_t _bufferSize, OUT ComPtr<ID3D11Buffer> _buffer, void* _initData)
+IE D3D11Renderer::CreateBuffer(uint64_t _bufferSize, OUT ComPtr<ID3D11Buffer>& _buffer, void* _initData /*= nullptr*/)
 {
 	HRESULT hr = S_OK;
 
@@ -357,10 +358,17 @@ IE D3D11Renderer::CreateBuffer(uint64_t _bufferSize, OUT ComPtr<ID3D11Buffer> _b
 	mbd.MiscFlags = 0;
 	mbd.StructureByteStride = 0;
 
-	D3D11_SUBRESOURCE_DATA initData = {};
-	initData.pSysMem = _initData;
+	if (nullptr == _initData)
+	{
+		hr = m_device->CreateBuffer(&mbd, nullptr, _buffer.GetAddressOf());
+	}
+	else
+	{
+		D3D11_SUBRESOURCE_DATA initData = {};
+		initData.pSysMem = _initData;
 
-	hr = m_device->CreateBuffer(&mbd, &initData, _buffer.GetAddressOf());
+		hr = m_device->CreateBuffer(&mbd, &initData, _buffer.GetAddressOf());
+	}
 
 	if (S_OK != hr)
 	{
@@ -478,7 +486,7 @@ IE D3D11Renderer::BindDataBuffer(ComPtr<ID3D11Buffer> _buffer, void* _data, uint
 	D3D11_BUFFER_DESC desc;
 	_buffer->GetDesc(&desc);
 
-	if (desc.Usage != D3D11_USAGE_DYNAMIC 
+	if (desc.Usage != D3D11_USAGE_DYNAMIC
 		|| false == (desc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))
 	{
 		return IE::D3D_WRONG_BUFFER_ACCESS_FLAG;
@@ -977,7 +985,10 @@ IE D3D11Renderer::AddLight(const std::wstring& _name, const LightData& _lightDat
 		break;
 	}
 	default:
+	{
+		return IE::WRONG_TYPE;
 		break;
+	}
 	}
 
 	return ie;
@@ -1044,6 +1055,7 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 	// ºûÀÇ ÃÖ´ë °¹¼ö ¼³Á¤
 	m_maxLightCount = _initalizeState.m_maxLightCount;
 
+	// °¢ ºûÀÇ Á¾·ù¿¡ µû¸¥ ºû ¹öÆÛ ¼³Á¤
 	CreateStructedBuffer(
 		sizeof(DirectionLightBufferData)
 		, m_maxLightCount
@@ -1064,6 +1076,9 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 		, m_spotLightBuffer.m_buffer
 		, m_spotLightBuffer.m_srv
 	);
+
+	// ºû °¹¼ö¸¦ ´ãÀ» ¹öÆÛ ¼³Á¤
+	CreateBuffer(sizeof(LightCountBuffer), m_lightCountBuffer);
 
 	FileOpenCallbackFunc = _initalizeState.FileOpenCallbackFunc;
 
@@ -1241,6 +1256,24 @@ IE D3D11Renderer::Draw()
 			, m_spotLightVector.data()
 			, sizeof(DirectionLightBufferData) * m_spotLightVector.size()
 		);
+	}
+
+	// ºûÀÇ ÃÑ °¹¼ö°¡ ¹Ù²î¸é »õ·Î ¹ÙÀÎµù
+	if (m_lightCountData.m_numDirection != m_dirctionLightVector.size()
+		|| m_lightCountData.m_numPoint != m_pointLightVector.size()
+		|| m_lightCountData.m_numSpot != m_spotLightVector.size())
+	{
+		m_lightCountData.m_numDirection = m_dirctionLightVector.size();
+		m_lightCountData.m_numPoint = m_pointLightVector.size();
+		m_lightCountData.m_numSpot = m_spotLightVector.size();
+
+		BindDataBuffer(
+			m_lightCountBuffer
+			, &m_lightCountData
+			, sizeof(m_lightCountData)
+		);
+
+		m_deviceContext->PSSetConstantBuffers(2, 1, m_lightCountBuffer.GetAddressOf());
 	}
 
 	if (false == m_renderVector.empty())

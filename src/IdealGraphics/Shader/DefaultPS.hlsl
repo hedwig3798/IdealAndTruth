@@ -1,21 +1,57 @@
 #include "Buffers.hlsl"
+#include "Light.hlsli"
 
 float4 main(VertexOut pin) 
 	: SV_TARGET
 {
 	// textuer sampling
-	float4 texColor = g_Texture.Sample(g_Sampler, pin.tex);
+    float4 texColor = g_Texture.Sample(g_Sampler, pin.tex);
     texColor.a = 1.0f;
     
-    // direction light
-    float3 N = normalize(pin.normal);
-    float3 L = normalize(-g_DirectionalLights[0].m_direction);
-    float3 V = normalize(g_CameraPos - pin.worldPos.xyz);
-    float3 H = normalize(L + V);
+    // result diff, spec
+    float diff = 0;
+    float spec = 0;
     
-    // calculate light
-    float diff = saturate(dot(N, L));
-    float spec = pow(saturate(dot(N, H)), 1.0f);
+    // direction light
+    LightInput lightInput;
+    // normal
+    lightInput.N = normalize(pin.normal);
+    lightInput.V = normalize(g_CameraPos - pin.worldPos.xyz);
+    [loop]
+    for (int d = 0; d < g_NumDirectional; ++d)
+    {
+        lightInput.L = normalize(-g_DirectionalLights[d].m_direction);
+        lightInput.H = normalize(lightInput.L + lightInput.V);
+        DirectionLigthCalculate(lightInput, diff, spec);
+    }
+    
+    // point light
+    [loop]
+    for (int p = 0; p < g_NumPoint; ++p)
+    {
+        float3 lightDirVec = g_PointLights[p].m_position - pin.worldPos.xyz;
+        lightInput.D = length(lightDirVec);
+        lightInput.L = normalize(lightDirVec);
+        lightInput.H = normalize(lightInput.L + lightInput.V);
+        lightInput.R = g_PointLights[p].m_range;
+        lightInput.A = g_PointLights[p].m_attenuation;
+        
+        PointLightCalculate(lightInput, diff, spec);
+    }
+    
+    
+    // spot light
+    [loop]
+    for (int s = 0; s < g_NumSpot; ++s)
+    {
+        float3 lightDirVec = g_PointLights[p].m_position - pin.worldPos.xyz;
+        lightInput.D = length(lightDirVec);
+        lightInput.L = normalize(lightDirVec);
+        lightInput.H = normalize(lightInput.L + lightInput.V);
+        lightInput.A = g_SpotLights[s].m_attenuation;
+        
+        SpotLightCalculate(lightInput, diff, spec);
+    }
     
     // a, d, s
     float3 ambient = 0.1f * g_DirectionalLights[0].m_color;
