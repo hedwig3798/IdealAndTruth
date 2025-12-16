@@ -2,12 +2,11 @@
 #include "stringUtil.h"
 #include "FilePathUtil.h"
 
-std::vector<IManagers*> DemoProcess::m_msgProcs;
+std::vector<IManagers*> DemoProcess::m_managers;
 
 DemoProcess::DemoProcess()
 	: m_renderer(nullptr)
 	, m_hwnd(nullptr)
-	, m_managers(nullptr)
 	, m_fms()
 	, m_luaState(nullptr)
 {
@@ -16,7 +15,6 @@ DemoProcess::DemoProcess()
 DemoProcess::~DemoProcess()
 {
 	delete m_renderer;
-	// delete m_managers;
 }
 
 void DemoProcess::Initialize(HWND _hwnd)
@@ -27,8 +25,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 		return;
 	}
 
-	m_inputManager = new TInputManager();
-	m_msgProcs.push_back(m_inputManager);
+	CreateManagers();
 
 	// 각종 세팅들
 	Settings();
@@ -45,12 +42,13 @@ void DemoProcess::Initialize(HWND _hwnd)
 	}
 	m_renderer = ((IRenderer * (*)())GetProcAddress(m_rendererDll, "CreateD3D11Renderer"))();
 
+
 	m_renderer->SetRenderSize(m_renderWidth, m_renderHight);
 
 	// 초기화
 	IE_ASSERT(m_renderer->Initialize(m_rendererState, m_hwnd));
 
-	ImguiInitialize();
+	InitManagers();
 
 	// 생성 할 수 있는 빛의 최대 갯수
 	m_renderer->SetMaxLightCount(10);
@@ -94,34 +92,7 @@ void DemoProcess::Update()
 
 void DemoProcess::Render()
 {
-	// ImguiRender();
-	IE_ASSERT(m_renderer->Draw([this]() {ImguiRender(); }));
-}
-
-void DemoProcess::ImguiRender()
-{
-	::ImGui_ImplDX11_NewFrame();
-	::ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	static float f = 0.0f;
-	static int counter = 0;
-
-	ImGui::Begin("Hello, world!");
-
-	ImGui::Text("This is some useful text.");
-
-	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-
-	if (ImGui::Button("Button"))
-		counter++;
-
-	ImGui::SameLine();
-	ImGui::Text("counter = %d", counter);
-
-	ImGui::End();
-
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	IE_ASSERT(m_renderer->Draw([this]() { m_imguiManager->Render(); }));
 }
 
 void DemoProcess::CreateRendererState()
@@ -312,27 +283,7 @@ void DemoProcess::Luainitialize()
 
 void DemoProcess::ImguiInitialize()
 {
-	::ImGui_ImplWin32_EnableDpiAwareness();
-	float main_scale = ::ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
 
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
-
-	// Setup scaling
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-	style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
-
-	// Setup Platform/Renderer backends
-	::ImGui_ImplWin32_Init(m_hwnd);
-	IE_ASSERT(m_renderer->ImguiInitialize(::ImGui_ImplDX11_Init));
 }
 
 void DemoProcess::LuaSetting()
@@ -621,6 +572,23 @@ void DemoProcess::CameraUpdate()
 	}
 }
 
+void DemoProcess::CreateManagers()
+{
+	m_imguiManager = new TImguiManager();
+	m_inputManager = new TInputManager();
+
+	m_managers.push_back(m_imguiManager);
+	m_managers.push_back(m_inputManager);
+}
+
+void DemoProcess::InitManagers()
+{
+	for (auto& manager : m_managers)
+	{
+		manager->Initialize(m_hwnd, m_renderer);
+	}
+}
+
 LRESULT CALLBACK DemoProcess::WndProc(
 	HWND hWnd
 	, UINT message
@@ -628,10 +596,10 @@ LRESULT CALLBACK DemoProcess::WndProc(
 	, LPARAM lParam
 )
 {
-	for (auto& proc : m_msgProcs)
+	for (auto& manager : m_managers)
 	{
-		if (nullptr != proc
-			&& true == proc->MsgProc(hWnd, message, wParam, lParam)
+		if (nullptr != manager
+			&& true == manager->MsgProc(hWnd, message, wParam, lParam)
 			)
 		{
 			return 0;

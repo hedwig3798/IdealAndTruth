@@ -1,26 +1,23 @@
 #pragma once
 #pragma comment(lib, "E:\\LuaBinding\\x64\\Debug\\lua5.1.lib")
 
+#include "IdealRenderer/IRenderer.h"
+
 #include <windows.h>
 #include <string>
 #include <iostream>
 
-#include "IdealRenderer/IRenderer.h"
 #include "FileStorage.h"
 
 #include "lua/lua.hpp"
 #include "lua_tinker.h"
 #include "luaMacro.h"
 
-#include "imgui.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_dx11.h"
-
-#include "TInputManager.h"
 #include "IManagers.h"
+#include "TInputManager.h"
+#include "TImguiManager.h"
 
 class IRenderer;
-class ManagerSet;
 class IManagers;
 
 class DemoProcess
@@ -42,7 +39,6 @@ private:
 	HWND m_hwnd;
 	IRenderer* m_renderer;
 	HMODULE m_rendererDll;
-	ManagerSet* m_managers;
 
 	// 렌더러 초기화를 위한 스테이트
 	// 수정을 할 수도 있어서 변수로 저장
@@ -63,9 +59,10 @@ private:
 
 	// 각 매니저의 메시지 프로시져 함수 벡터
 	// static 함수여야 해서 이렇게 넣는다
-	static std::vector<IManagers*> m_msgProcs;
+	static std::vector<IManagers*> m_managers;
 
 	TInputManager* m_inputManager;
+	TImguiManager* m_imguiManager;
 
 public:
 	// 생성자 소멸자
@@ -97,11 +94,6 @@ private:
 	// 실제 수행되는 함수
 	void Update();
 	void Render();
-
-	/// <summary>
-	/// imgui ui 라이브러리 업데이트 함수
-	/// </summary>
-	void ImguiRender();
 
 	/// <summary>
 	/// 렌더러 정보 입력
@@ -160,4 +152,8 @@ private:
 	void CreateMaterial(const std::wstring& _path);
 
 	void CameraUpdate();
+
+	void CreateManagers();
+
+	void InitManagers();
 };

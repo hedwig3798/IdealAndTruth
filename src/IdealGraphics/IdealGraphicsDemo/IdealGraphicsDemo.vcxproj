@@ -166,6 +166,7 @@
     <ClInclude Include="SecureCodec.h" />
     <ClInclude Include="stringUtil.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TImguiManager.h" />
     <ClInclude Include="TInputManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -185,6 +186,7 @@
     <ClCompile Include="lz4hc.c" />
     <ClCompile Include="SecureCodec.cpp" />
     <ClCompile Include="stringUtil.cpp" />
+    <ClCompile Include="TImguiManager.cpp" />
     <ClCompile Include="TInputManager.cpp" />
   </ItemGroup>
   <ItemGroup>

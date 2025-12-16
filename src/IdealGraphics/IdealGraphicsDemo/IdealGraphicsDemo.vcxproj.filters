@@ -37,6 +37,9 @@
     <Filter Include="Manager\input">
       <UniqueIdentifier>{48bd84ba-4041-4018-b294-cb1f8da0c88a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Manager\Imgui">
+      <UniqueIdentifier>{dd9dc024-b658-4581-bec0-6b0b5614f5e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -108,6 +111,9 @@
     <ClInclude Include="IManagers.h">
       <Filter>Manager</Filter>
     </ClInclude>
+    <ClInclude Include="TImguiManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IdealGraphicsDemo.cpp">
@@ -160,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="TInputManager.cpp">
       <Filter>Manager\input</Filter>
+    </ClCompile>
+    <ClCompile Include="TImguiManager.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

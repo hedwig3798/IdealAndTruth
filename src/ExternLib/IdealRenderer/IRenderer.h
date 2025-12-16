@@ -15,6 +15,9 @@
 #include <memory>
 #include <vector>
 
+#include <windows.h>
+#include <string>
+
 using namespace DirectX::SimpleMath;
 
 typedef const std::vector<unsigned char> CONST_FILE_STREAM;

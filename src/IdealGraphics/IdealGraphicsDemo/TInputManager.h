@@ -22,6 +22,8 @@ public:
 	TInputManager();
 	~TInputManager();
 
+	virtual void Initialize(HWND _hwnd, IRenderer* _renderer) override;
+
 	virtual bool MsgProc(
 		HWND hWnd
 		, UINT message

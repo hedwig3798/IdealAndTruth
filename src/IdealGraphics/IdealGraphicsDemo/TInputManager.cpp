@@ -18,6 +18,11 @@ TInputManager::~TInputManager()
 
 }
 
+void TInputManager::Initialize(HWND _hwnd, IRenderer* _renderer)
+{
+
+}
+
 bool TInputManager::MsgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 
@@ -26,44 +31,49 @@ bool TInputManager::MsgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_LBUTTONDOWN:
 	{
 		m_mouseDown[0][0] = true;
+		return true;
 		break;
 	}
 	case WM_RBUTTONDOWN:
 	{
 		m_mouseDown[1][0] = true;
+		return true;
 		break;
 	}
 	case WM_LBUTTONUP:
 	{
 		m_mouseDown[0][0] = false;
+		return true;
 		break;
 	}
 	case WM_RBUTTONUP:
 	{
 		m_mouseDown[1][0] = false;
+		return true;
 		break;
 	}
 	case WM_MOUSEMOVE:
 	{
 		m_currMouseMove[1] = HIWORD(lParam);
 		m_currMouseMove[0] = LOWORD(lParam);
+		return true;
 
 		break;
 	}
 	case WM_KEYDOWN:
 	{
 		m_keyboradInput[wParam & 0xFF][0] = true;
+		return true;
 		break;
 	}
 	case WM_KEYUP:
 	{
 		m_keyboradInput[wParam & 0xFF][0] = false;
+		return true;
 		break;
 	}
 	break;
 	}
-
-
 
 	return false;
 }
