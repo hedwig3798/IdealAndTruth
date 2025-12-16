@@ -2,10 +2,7 @@
 #include "stringUtil.h"
 #include "FilePathUtil.h"
 
-bool DemoProcess::m_mouseDown[2] = { false, false };
-int DemoProcess::m_currMouseMove[2] = { 0, 0 };
-int DemoProcess::m_oldMouseMove[2] = { 0, 0 };
-int DemoProcess::m_mouseMovement[2] = { 0, 0 };
+std::vector<IManagers*> DemoProcess::m_msgProcs;
 
 DemoProcess::DemoProcess()
 	: m_renderer(nullptr)
@@ -14,11 +11,6 @@ DemoProcess::DemoProcess()
 	, m_fms()
 	, m_luaState(nullptr)
 {
-	m_mouseDown[0] = false;
-	m_mouseDown[1] = false;
-
-	m_tempRender = std::make_shared<IRenderer::IRenderObject>();
-	m_tempModel = std::make_shared<IRenderer::IModelObject>();
 }
 
 DemoProcess::~DemoProcess()
@@ -34,6 +26,9 @@ void DemoProcess::Initialize(HWND _hwnd)
 		std::cout << "window handler error\n";
 		return;
 	}
+
+	m_inputManager = new TInputManager();
+	m_msgProcs.push_back(m_inputManager);
 
 	// 각종 세팅들
 	Settings();
@@ -81,11 +76,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 	// 머테리얼 데이터로 머테리얼 만들기
 	CreateMaterial(L"GunMaterial.lua");
 
-	// 매쉬 데이터 생성
+	// 씬 스크립트 로드
 	ReadScene(L"DemoScene.lua");
-	// 빛 테스트
-
-	// m_renderer->AddLight(L"temp", ld);
 }
 
 void DemoProcess::Process()
@@ -96,107 +88,31 @@ void DemoProcess::Process()
 
 void DemoProcess::Update()
 {
-	ImguiUpdate();
-	// 임시 카메라 움직임 제어
-	// 나중에 매니져 클래스로 뺄 예정
-	if (true == m_camera.expired())
-	{
-		return;
-	}
-
-	ICamera* camera = m_camera.lock().get();
-
-	// 카메라 이동
-	if (GetAsyncKeyState(VK_UP) & 0x8000)
-	{
-		camera->MoveForward(0.001f);
-	}
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-	{
-		camera->MoveForward(-0.001f);
-	}
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-	{
-		camera->MoveRight(-0.001f);
-	}
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-	{
-		camera->MoveRight(0.001f);
-	}
-
-	// 카메라 회전
-	if (GetAsyncKeyState('W') & 0x8000)
-	{
-		camera->MoveForward(0.001f);
-	}
-	if (GetAsyncKeyState('S') & 0x8000)
-	{
-		camera->MoveForward(-0.001f);
-	}
-	if (GetAsyncKeyState('D') & 0x8000)
-	{
-		camera->MoveRight(0.001f);
-	}
-	if (GetAsyncKeyState('A') & 0x8000)
-	{
-		camera->MoveRight(-0.001f);
-	}
-
-	if (GetAsyncKeyState('E') & 0x8000)
-	{
-		camera->MoveUp(0.001f);
-	}
-	if (GetAsyncKeyState('Q') & 0x8000)
-	{
-		camera->MoveUp(-0.001f);
-	}
-
-	if (true == m_mouseDown[0])
-	{
-		camera->RotateRight(-m_mouseMovement[1] * 0.0009f);
-		camera->RotateUp(-m_mouseMovement[0] * 0.0009f);
-
-		m_mouseMovement[0] = 0;
-		m_mouseMovement[1] = 0;
-	}
+	m_inputManager->Update();
+	CameraUpdate();
 }
 
 void DemoProcess::Render()
 {
-	IE_ASSERT(m_renderer->Draw());
-
-	// this->graphicsEngine->begineDraw();
-	// this->object->Render(graphicsEngine);
-	// 
-	// std::wstring dt = L"DeltaTime : ";
-	// dt += std::to_wstring(this->m_managers->timeManager->GetfDT());
-	// dt += L"\n";
-	// dt += L"FPS : ";
-	// dt += std::to_wstring(1 / this->m_managers->timeManager->GetfDT());
-	// 
-	// float w[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	// 
-	// this->graphicsEngine->endDraw();
-	// 
-	// int test = 0;
+	// ImguiRender();
+	IE_ASSERT(m_renderer->Draw([this]() {ImguiRender(); }));
 }
 
-void DemoProcess::ImguiUpdate()
+void DemoProcess::ImguiRender()
 {
 	::ImGui_ImplDX11_NewFrame();
 	::ImGui_ImplWin32_NewFrame();
-
 	ImGui::NewFrame();
 	static float f = 0.0f;
 	static int counter = 0;
 
-	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+	ImGui::Begin("Hello, world!");
 
-	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+	ImGui::Text("This is some useful text.");
 
-	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 
-	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+	if (ImGui::Button("Button"))
 		counter++;
 
 	ImGui::SameLine();
@@ -644,60 +560,89 @@ void DemoProcess::CreateMaterial(const std::wstring& _path)
 	return;
 }
 
+void DemoProcess::CameraUpdate()
+{
+	if (true == m_camera.expired()
+		|| nullptr == m_inputManager)
+	{
+		return;
+	}
+
+	ICamera* camera = m_camera.lock().get();
+
+	// 카메라 이동
+	if (m_inputManager->GetKeyHold(VK_UP))
+	{
+		camera->MoveForward(0.001f);
+	}
+	if (m_inputManager->GetKeyHold(VK_DOWN))
+	{
+		camera->MoveForward(-0.001f);
+	}
+	if (m_inputManager->GetKeyHold(VK_LEFT))
+	{
+		camera->MoveRight(-0.001f);
+	}
+	if (m_inputManager->GetKeyHold(VK_RIGHT))
+	{
+		camera->MoveRight(0.001f);
+	}
+
+	// 카메라 회전
+	if (m_inputManager->GetKeyHold('W'))
+	{
+		camera->MoveForward(0.001f);
+	}
+	if (m_inputManager->GetKeyHold('S'))
+	{
+		camera->MoveForward(-0.001f);
+	}
+	if (m_inputManager->GetKeyHold('D'))
+	{
+		camera->MoveRight(0.001f);
+	}
+	if (m_inputManager->GetKeyHold('A'))
+	{
+		camera->MoveRight(-0.001f);
+	}
+
+	if (m_inputManager->GetKeyHold('E'))
+	{
+		camera->MoveUp(0.001f);
+	}
+	if (m_inputManager->GetKeyHold('Q'))
+	{
+		camera->MoveUp(-0.001f);
+	}
+	if (true == m_inputManager->GetMouseHold(0))
+	{
+		camera->RotateRight(-m_inputManager->GetMouseDX() * 0.0009f);
+		camera->RotateUp(-m_inputManager->GetMouseDY() * 0.0009f);
+	}
+}
+
 LRESULT CALLBACK DemoProcess::WndProc(
-	HWND hWnd,
-	UINT message,
-	WPARAM wParam,
-	LPARAM lParam
+	HWND hWnd
+	, UINT message
+	, WPARAM wParam
+	, LPARAM lParam
 )
 {
-	// HDC			hdc;
-	// PAINTSTRUCT ps;
+	for (auto& proc : m_msgProcs)
+	{
+		if (nullptr != proc
+			&& true == proc->MsgProc(hWnd, message, wParam, lParam)
+			)
+		{
+			return 0;
+		}
+	}
 
 	switch (message)
 	{
-		//case WM_PAINT:
-		//	hdc = BeginPaint(hWnd, &ps);
-		//	EndPaint(hWnd, &ps);
-		//	break;
-		//
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-
-		//
-	case WM_LBUTTONDOWN:
-	{
-		m_mouseDown[0] = true;
-		break;
-	}
-	case WM_RBUTTONDOWN:
-	{
-		m_mouseDown[1] = true;
-		break;
-	}
-	case WM_LBUTTONUP:
-	{
-		m_mouseDown[0] = false;
-		break;
-	}
-	case WM_RBUTTONUP:
-	{
-		m_mouseDown[1] = false;
-		break;
-	}
-	case WM_MOUSEMOVE:
-	{
-		m_currMouseMove[0] = HIWORD(lParam);
-		m_currMouseMove[1] = LOWORD(lParam);
-
-		m_mouseMovement[0] = m_currMouseMove[0] - m_oldMouseMove[0];
-		m_mouseMovement[1] = m_currMouseMove[1] - m_oldMouseMove[1];
-
-		m_oldMouseMove[0] = m_currMouseMove[0];
-		m_oldMouseMove[1] = m_currMouseMove[1];
-		break;
-	}
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

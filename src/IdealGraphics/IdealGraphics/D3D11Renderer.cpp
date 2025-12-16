@@ -1225,7 +1225,7 @@ IE D3D11Renderer::SetAniamtion(int _meshID)
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::Draw()
+IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 {
 	IE result = IE::I_OK;
 
@@ -1363,6 +1363,11 @@ IE D3D11Renderer::Draw()
 
 			m_deviceContext->DrawIndexed(ib->second.second, 0, 0);
 		}
+	}
+
+	if (nullptr != ImguiRender)
+	{
+		ImguiRender();
 	}
 
 	m_swapChain->Present(0, 0);

@@ -28,11 +28,14 @@
     <Filter Include="Utils\Lua">
       <UniqueIdentifier>{3d08405a-03f3-4e0b-8a19-33c0df552d56}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Model">
-      <UniqueIdentifier>{187d7edb-a7cb-493f-870a-5dd43fdf543f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="imgui">
       <UniqueIdentifier>{453e0200-03ea-406e-be5c-0456683375c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager">
+      <UniqueIdentifier>{187d7edb-a7cb-493f-870a-5dd43fdf543f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\input">
+      <UniqueIdentifier>{48bd84ba-4041-4018-b294-cb1f8da0c88a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +102,12 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="TInputManager.h">
+      <Filter>Manager\input</Filter>
+    </ClInclude>
+    <ClInclude Include="IManagers.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IdealGraphicsDemo.cpp">
@@ -148,6 +157,9 @@
     </ClCompile>
     <ClCompile Include="imgui_impl_win32.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="TInputManager.cpp">
+      <Filter>Manager\input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

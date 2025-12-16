@@ -312,7 +312,7 @@ public:
 	/// Draw Call
 	/// </summary>
 	/// <returns>성공 여부</returns>
-	virtual IE Draw() = 0;
+	virtual IE Draw(std::function<void()> ImguiRender = nullptr) = 0;
 
 	/// <summary>
 	/// 렌더 타겟 클리어시 사용할 색

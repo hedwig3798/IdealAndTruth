@@ -348,7 +348,7 @@ public:
 	/// 최종 렌더링
 	/// </summary>
 	/// <returns>성공 여부</returns>
-	IE Draw() override;
+	IE Draw(std::function<void()> ImguiRender = nullptr) override;
 
 	/// <summary>
 	/// 렌더 타겟 클리어시 사용할 색

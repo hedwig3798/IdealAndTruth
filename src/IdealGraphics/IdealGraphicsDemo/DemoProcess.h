@@ -16,8 +16,12 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
+#include "TInputManager.h"
+#include "IManagers.h"
+
 class IRenderer;
 class ManagerSet;
+class IManagers;
 
 class DemoProcess
 {
@@ -40,25 +44,28 @@ private:
 	HMODULE m_rendererDll;
 	ManagerSet* m_managers;
 
+	// 렌더러 초기화를 위한 스테이트
+	// 수정을 할 수도 있어서 변수로 저장
 	IRenderer::InitializeState m_rendererState;
 
+	// 파일 저장소 및 매니저
 	FileStorage m_fms;
 
+	// 루아 스테이트
 	lua_State* m_luaState;
 
-	std::shared_ptr<IRenderer::IRenderObject> m_tempRender;
-	std::shared_ptr<IRenderer::IModelObject> m_tempModel;
-
+	// 카메라
 	std::weak_ptr<ICamera> m_camera;
 
+	// 렌더 넓이와 높이
 	UINT m_renderWidth;
 	UINT m_renderHight;
 
-	// 임시 마우스 변수
-	static bool m_mouseDown[2];
-	static int m_currMouseMove[2];
-	static int m_oldMouseMove[2];
-	static int m_mouseMovement[2];
+	// 각 매니저의 메시지 프로시져 함수 벡터
+	// static 함수여야 해서 이렇게 넣는다
+	static std::vector<IManagers*> m_msgProcs;
+
+	TInputManager* m_inputManager;
 
 public:
 	// 생성자 소멸자
@@ -71,8 +78,12 @@ public:
 	// 루프에서 실행되는 함수
 	void Process();
 
-	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
-		WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK WndProc(
+		HWND hWnd
+		, UINT message
+		, WPARAM wParam
+		, LPARAM lParam
+	);
 
 	static bool OpenFile(
 		void* _fms
@@ -90,7 +101,7 @@ private:
 	/// <summary>
 	/// imgui ui 라이브러리 업데이트 함수
 	/// </summary>
-	void ImguiUpdate();
+	void ImguiRender();
 
 	/// <summary>
 	/// 렌더러 정보 입력
@@ -147,4 +158,6 @@ private:
 	/// </summary>
 	/// <param name="_path">lua 경로</param>
 	void CreateMaterial(const std::wstring& _path);
+
+	void CameraUpdate();
 };
