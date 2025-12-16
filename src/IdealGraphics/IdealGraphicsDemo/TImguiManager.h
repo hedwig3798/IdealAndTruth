@@ -5,13 +5,25 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 
+#include <time.h>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 class TImguiManager :
-    public IManagers
+	public IManagers
 {
+private:
+	double m_fpsTimer;
+	clock_t m_frameStart;
+	clock_t m_frameEnd;
+
+	int m_fpsCounter;
+	int m_fpsViwe;
+
 public:
+	TImguiManager();
+	virtual ~TImguiManager();
+
 	void Render();
 
 public:

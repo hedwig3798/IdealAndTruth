@@ -3,8 +3,36 @@
 
 #include <iostream>
 
+TImguiManager::TImguiManager()
+	: m_fpsTimer(0.0f)
+	, m_fpsViwe(0)
+	, m_fpsCounter(0)
+{
+	m_frameStart = ::clock();
+	m_frameEnd = ::clock();
+}
+
+TImguiManager::~TImguiManager()
+{
+
+}
+
 void TImguiManager::Render()
 {
+	m_frameEnd = ::clock();
+
+	m_fpsTimer += static_cast<double>(m_frameEnd - m_frameStart) / CLOCKS_PER_SEC;
+	m_fpsCounter++;
+
+	if (1 <= m_fpsTimer)
+	{
+		m_fpsTimer -= 1.0;
+		m_fpsViwe = m_fpsCounter;
+		m_fpsCounter = 0;
+	}
+
+	m_frameStart = ::clock();
+
 	::ImGui_ImplDX11_NewFrame();
 	::ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -13,7 +41,7 @@ void TImguiManager::Render()
 
 	ImGui::Begin("Hello, world!");
 
-	ImGui::Text("This is some useful text.");
+	ImGui::Text("FPS : %d", m_fpsViwe);
 
 	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 

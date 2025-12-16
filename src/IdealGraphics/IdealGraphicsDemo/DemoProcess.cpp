@@ -9,6 +9,12 @@ DemoProcess::DemoProcess()
 	, m_hwnd(nullptr)
 	, m_fms()
 	, m_luaState(nullptr)
+	, m_imguiManager(nullptr)
+	, m_inputManager(nullptr)
+	, m_renderHight(0.0f)
+	, m_renderWidth(0.0f)
+	, m_rendererDll()
+	, m_rendererState{}
 {
 }
 
