@@ -11,8 +11,8 @@ DemoProcess::DemoProcess()
 	, m_luaState(nullptr)
 	, m_imguiManager(nullptr)
 	, m_inputManager(nullptr)
-	, m_renderHight(0.0f)
-	, m_renderWidth(0.0f)
+	, m_renderHight(0)
+	, m_renderWidth(0)
 	, m_rendererDll()
 	, m_rendererState{}
 {
@@ -82,6 +82,8 @@ void DemoProcess::Initialize(HWND _hwnd)
 
 	// 씬 스크립트 로드
 	ReadScene(L"DemoScene.lua");
+
+	SetSkyBox();
 }
 
 void DemoProcess::Process()
@@ -593,6 +595,36 @@ void DemoProcess::InitManagers()
 	{
 		manager->Initialize(m_hwnd, m_renderer);
 	}
+}
+
+void DemoProcess::SetSkyBox()
+{
+	FILE_STREAM s;
+	m_fms.OpenFile(L"SkyBox.lua", s);
+	if (true == s.empty())
+	{
+		return;
+	}
+
+	// skybox data
+	DO_STREAM(m_luaState, s);
+	std::wstring vs = LuaValueGetter<std::wstring>::Get(m_luaState, "VertexShader");
+	std::wstring ps = LuaValueGetter<std::wstring>::Get(m_luaState, "PixelShader");
+	std::wstring textuer = LuaValueGetter<std::wstring>::Get(m_luaState, "Textuer");
+
+	// skybox textuer data
+	FILE_STREAM ts;
+	m_fms.OpenFile(textuer, ts);
+	if (true == ts.empty())
+	{
+		return;
+	}
+	IRenderer::TextuerData tdata{ textuer , ts };
+
+	// create skybox render data
+	m_renderer->SetSkyVS(IRenderer::VERTEX_TYPE::VertexPU, vs);
+	m_renderer->SetSkyPS(ps);
+	m_renderer->SetSkyTextuer(tdata);
 }
 
 LRESULT CALLBACK DemoProcess::WndProc(

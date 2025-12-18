@@ -15,6 +15,8 @@
 #include <memory>
 #include <vector>
 
+#include <string>
+
 using namespace DirectX::SimpleMath;
 
 typedef const std::vector<unsigned char> CONST_FILE_STREAM;
@@ -396,6 +398,24 @@ public:
 			, ID3D11DeviceContext* _deviceContext
 			)
 	) = 0;
+
+	/// <summary>
+	/// 스카이 박스에 사용될 정점 셰이더
+	/// </summary>
+	/// <returns></returns>
+	virtual IE SetSkyVS(VERTEX_TYPE _type, const std::wstring& _vs) = 0;
+
+	/// <summary>
+	/// 스카이 박스에 사용될 픽셀 셰이더
+	/// </summary>
+	/// <returns></returns>
+	virtual IE SetSkyPS(const std::wstring& _ps) = 0;
+
+	/// <summary>
+	/// 스카이 박스에 사용될 텍스쳐
+	/// </summary>
+	/// <returns></returns>
+	virtual IE SetSkyTextuer(const TextuerData& _textuer) = 0;
 };
 
 /// <summary>

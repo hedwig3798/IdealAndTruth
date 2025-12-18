@@ -44,7 +44,7 @@ private:
 	/// 가장 최근 렌더한 오브젝트의 정보
 	/// 달라진거만 새로 바인딩 하기 위함
 	/// </summary>
-	struct CurrentReder
+	struct RenderStruct
 	{
 		ComPtr<ID3D11VertexShader> m_vs = nullptr;
 		ComPtr<ID3D11InputLayout> m_ia = nullptr;
@@ -117,7 +117,7 @@ private:
 	// render object vector
 	std::vector<std::shared_ptr<IRenderObject>> m_renderVector;
 
-	CurrentReder m_currentRenderSet;
+	RenderStruct m_currentRenderSet;
 
 	ComPtr<ID3D11Buffer> m_worldBuffer;
 
@@ -128,11 +128,16 @@ private:
 	UINT m_renderWidth;
 	UINT m_renderHight;
 
+	RenderStruct m_skyRenderSet;
+	UINT m_skyIndexSize;
+	ComPtr<ID3D11ShaderResourceView> m_skyTextuer;
+
 public:
 	D3D11Renderer();
 	virtual ~D3D11Renderer();
 
 private:
+
 #pragma region Create
 	/// <summary>
 	/// D3D11 Device 와 Device Context를 생성
@@ -221,6 +226,8 @@ private:
 	/// <param name="_stream">vs 데이터</param>
 	/// <returns>성공 여부</returns>
 	IE CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigned char>& _stream);
+
+	IE CreateSkySphereObject();
 #pragma endregion
 
 #pragma region Bind
@@ -434,5 +441,23 @@ public:
 			, ID3D11DeviceContext* _deviceContext
 			)
 	) override;
+
+	/// <summary>
+	/// 스카이 박스에 사용될 정점 셰이더
+	/// </summary>
+	/// <returns></returns>
+	IE SetSkyVS(VERTEX_TYPE _type, const std::wstring& _vs) override;
+
+	/// <summary>
+	/// 스카이 박스에 사용될 픽셀 셰이더
+	/// </summary>
+	/// <returns></returns>
+	IE SetSkyPS(const std::wstring& _ps) override;
+
+	/// <summary>
+	/// 스카이 박스에 사용될 텍스쳐
+	/// </summary>
+	/// <returns></returns>
+	IE SetSkyTextuer(const TextuerData& _textuer) override;
 };
 

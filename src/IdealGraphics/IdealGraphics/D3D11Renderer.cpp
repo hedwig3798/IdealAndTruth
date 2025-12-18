@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "D3D11Renderer.h"
 #include "stringUtil.h"
+#include "Sphere.h"
+
 #include <sstream>
 #define MEM_SIZE 1'048'576'000 * 4 //4GB
 
@@ -18,6 +20,7 @@ D3D11Renderer::D3D11Renderer()
 	, m_currentRenderSet()
 	, m_maxLightCount(1)
 	, m_lightCountData{ 0, 0, 0 }
+	, m_skyIndexSize(0)
 {
 
 }
@@ -667,6 +670,78 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 	return IE::I_OK;
 }
 
+IE D3D11Renderer::CreateSkySphereObject()
+{
+	if (nullptr == m_device)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	HRESULT hr;
+
+	std::vector<VertexPU> vertex;
+	std::vector<UINT> index;
+
+	// 스카이박스 정점, 인덱스 버퍼 생성
+	CreateSphere(vertex, index);
+
+	if (vertex.empty()
+		|| index.empty())
+	{
+		return IE::STREAM_ERROR;
+	}
+
+	// sky vertex buffer
+	D3D11_BUFFER_DESC vb = {};
+	vb.Usage = D3D11_USAGE_IMMUTABLE;
+	vb.ByteWidth = static_cast<UINT>(vertex.size() * sizeof(VertexPU));
+	vb.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vb.CPUAccessFlags = 0;
+	vb.MiscFlags = 0;
+	vb.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA vInitData = {};
+	vInitData.pSysMem = vertex.data();
+
+	hr = m_device->CreateBuffer(
+		&vb
+		, &vInitData
+		, m_skyRenderSet.m_vb.GetAddressOf()
+	);
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	// sky box index buffer
+	D3D11_BUFFER_DESC ib = {};
+	ib.Usage = D3D11_USAGE_IMMUTABLE;
+	ib.ByteWidth = static_cast<UINT>(index.size() * sizeof(UINT));
+	ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ib.CPUAccessFlags = 0;
+	ib.MiscFlags = 0;
+	ib.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA iInitData = {};
+	iInitData.pSysMem = index.data();
+
+	hr = m_device->CreateBuffer(
+		&ib
+		, &iInitData
+		, m_skyRenderSet.m_ib.GetAddressOf()
+	);
+
+	if (S_OK != hr)
+	{
+		return IE::CREATE_D3D_BUFFER_FAIL;
+	}
+
+	// skybox index size
+	m_skyIndexSize = index.size();
+
+	return IE::I_OK;
+}
 
 IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::wstring& _name)
 {
@@ -715,6 +790,10 @@ IE D3D11Renderer::CreateVertexShader(VERTEX_TYPE _type, const std::wstring& _nam
 		{
 			return result;
 		}
+		m_vsMap[_name].second = m_iaBuffer[static_cast<int>(_type)];
+	}
+	else
+	{
 		m_vsMap[_name].second = m_iaBuffer[static_cast<int>(_type)];
 	}
 
@@ -1013,6 +1092,49 @@ IE D3D11Renderer::ImguiInitialize(bool(*ImguiStartFunc)(ID3D11Device* _device, I
 }
 
 
+IE D3D11Renderer::SetSkyVS(VERTEX_TYPE _type, const std::wstring& _vs)
+{
+	IE iok;
+	iok = CreateVertexShader(_type, _vs);
+	if (IE::I_OK !=iok)
+	{
+		return iok;
+	}
+
+	m_skyRenderSet.m_vs = m_vsMap[_vs].first;
+	m_skyRenderSet.m_ia = m_vsMap[_vs].second;
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::SetSkyPS(const std::wstring& _ps)
+{
+	IE iok;
+	iok = CreatePixelShader(_ps);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+
+	m_skyRenderSet.m_ps = m_psMap[_ps];
+
+	return IE::I_OK;
+}
+
+IE D3D11Renderer::SetSkyTextuer(const TextuerData& _textuer)
+{
+	IE iok;
+	iok = CreateTexture(_textuer);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+
+	m_skyTextuer = m_textuerMap[_textuer.m_name];
+
+	return IE::I_OK;
+}
+
 IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 {
 	m_hwnd = _hwnd;
@@ -1102,6 +1224,8 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 	FileOpenCallbackFunc = _initalizeState.FileOpenCallbackFunc;
 
 	m_fms = _initalizeState.m_fms;
+
+	CreateSkySphereObject();
 
 	return IE::I_OK;
 }
@@ -1293,6 +1417,26 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 		);
 
 		m_deviceContext->PSSetConstantBuffers(2, 1, m_lightCountBuffer.GetAddressOf());
+	}
+
+	// 스카이 박스 렌더링
+	// 요소 중 하나라도 없으면 할 필요가 없다
+	if (nullptr != m_skyRenderSet.m_vs
+		&& nullptr != m_skyRenderSet.m_ia
+		&& nullptr != m_skyRenderSet.m_vb
+		&& nullptr != m_skyRenderSet.m_ps
+		&& nullptr != m_skyRenderSet.m_ib
+		&& nullptr != m_skyTextuer
+		&& 0 < m_skyIndexSize)
+	{
+		BindVertexShaderAndInputLayout(m_skyRenderSet.m_vs, m_skyRenderSet.m_ia);
+		BindPixelShader(m_skyRenderSet.m_ps);
+		m_deviceContext->PSSetShaderResources(4, 1, m_skyTextuer.GetAddressOf());
+		BindVertexBuffer(m_skyRenderSet.m_vb, sizeof(VertexPU));
+		BindIndexBuffer(m_skyRenderSet.m_ib);
+		// BindWorldBuffer(m_mainCamera.lock()->GetViewMatrix());
+		// BindWorldBuffer(m_mainCamera.lock()->GetViewMatrix());
+		m_deviceContext->DrawIndexed(m_skyIndexSize, 0, 0);
 	}
 
 	if (false == m_renderVector.empty())

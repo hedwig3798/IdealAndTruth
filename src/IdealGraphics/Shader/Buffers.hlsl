@@ -61,6 +61,8 @@ StructuredBuffer<DirectionLight> g_DirectionalLights : register(t1);
 StructuredBuffer<PointLight> g_PointLights : register(t2);
 StructuredBuffer<SpotLight> g_SpotLights : register(t3);
 
+TextureCube g_skyTextuer : register(t4);
+
 
 SamplerState g_Sampler : register(s0);
 

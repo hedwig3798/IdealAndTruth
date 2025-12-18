@@ -152,9 +152,23 @@ private:
 	/// <param name="_path">lua 경로</param>
 	void CreateMaterial(const std::wstring& _path);
 
+	/// <summary>
+	/// 카메라 조종 함수
+	/// </summary>
 	void CameraUpdate();
 
+	/// <summary>
+	/// 매니져 생성
+	/// </summary>
 	void CreateManagers();
 
+	/// <summary>
+	/// 매니져 초기화
+	/// </summary>
 	void InitManagers();
+
+	/// <summary>
+	/// 스카이 박스 설정
+	/// </summary>
+	void SetSkyBox();
 };

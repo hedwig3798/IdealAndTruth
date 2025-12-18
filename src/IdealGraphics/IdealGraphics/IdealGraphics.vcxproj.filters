@@ -28,6 +28,9 @@
     <Filter Include="CustomBuffer">
       <UniqueIdentifier>{798c9e13-0c27-4c99-ab64-b2ffef32d0f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Vertex\Sphere">
+      <UniqueIdentifier>{b09322de-79b3-467c-b77b-a62a253b82a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -67,6 +70,9 @@
       <Filter>CustomBuffer</Filter>
     </ClInclude>
     <ClInclude Include="stringUtil.h" />
+    <ClInclude Include="Sphere.h">
+      <Filter>Vertex\Sphere</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -88,5 +94,8 @@
       <Filter>Vertex</Filter>
     </ClCompile>
     <ClCompile Include="stringUtil.cpp" />
+    <ClCompile Include="Sphere.cpp">
+      <Filter>Vertex\Sphere</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -112,7 +112,7 @@
       <Filter>Manager</Filter>
     </ClInclude>
     <ClInclude Include="TImguiManager.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Manager\Imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -168,7 +168,7 @@
       <Filter>Manager\input</Filter>
     </ClCompile>
     <ClCompile Include="TImguiManager.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Manager\Imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
