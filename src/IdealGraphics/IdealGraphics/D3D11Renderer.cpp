@@ -738,7 +738,7 @@ IE D3D11Renderer::CreateSkySphereObject()
 	}
 
 	// skybox index size
-	m_skyIndexSize = index.size();
+	m_skyIndexSize = static_cast<UINT>(index.size());
 
 	return IE::I_OK;
 }
@@ -1135,7 +1135,7 @@ IE D3D11Renderer::SetSkyTextuer(const TextuerData& _textuer)
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateDefaultTextuer(const Color& _diffuse, const Color& _normal, const Color& _roughness, const Color& _metalic)
+IE D3D11Renderer::CreateDefaultTextuer(const Vector3& _diffuse, const Vector3& _normal, const Vector3& _roughness, const Vector3& _metalic)
 {
 	if (nullptr == m_device)
 	{
@@ -1160,7 +1160,7 @@ IE D3D11Renderer::CreateDefaultTextuer(const Color& _diffuse, const Color& _norm
 	srvDesc.Texture2D.MipLevels = 1;
 
 	// default textier creator lamda
-	auto Creator = [&](const Color& _color, ComPtr<ID3D11ShaderResourceView>& _targetSRV) -> IE
+	auto Creator = [&](const Vector3& _color, ComPtr<ID3D11ShaderResourceView>& _targetSRV) -> IE
 		{
 			HRESULT hr = S_OK;
 
@@ -1170,7 +1170,7 @@ IE D3D11Renderer::CreateDefaultTextuer(const Color& _diffuse, const Color& _norm
 				static_cast<unsigned char>(_color.x * 255.0f),
 				static_cast<unsigned char>(_color.y * 255.0f),
 				static_cast<unsigned char>(_color.z * 255.0f),
-				static_cast<unsigned char>(_color.w * 255.0f)
+				255
 			};
 
 			ComPtr<ID3D11Texture2D> textuer;
@@ -1308,6 +1308,13 @@ IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 	m_fms = _initalizeState.m_fms;
 
 	CreateSkySphereObject();
+
+	CreateDefaultTextuer(
+		_initalizeState.m_defaultTextuerSetting.m_diffuse
+		, _initalizeState.m_defaultTextuerSetting.m_normal
+		, _initalizeState.m_defaultTextuerSetting.m_roughness
+		, _initalizeState.m_defaultTextuerSetting.m_metalic
+	);
 
 	return IE::I_OK;
 }
@@ -1515,7 +1522,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 	{
 		BindVertexShaderAndInputLayout(m_skyRenderSet.m_vs, m_skyRenderSet.m_ia);
 		BindPixelShader(m_skyRenderSet.m_ps);
-		m_deviceContext->PSSetShaderResources(4, 1, m_skyTextuer.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(7, 1, m_skyTextuer.GetAddressOf());
 		BindVertexBuffer(m_skyRenderSet.m_vb, sizeof(VertexPU));
 		BindIndexBuffer(m_skyRenderSet.m_ib);
 		m_deviceContext->DrawIndexed(m_skyIndexSize, 0, 0);

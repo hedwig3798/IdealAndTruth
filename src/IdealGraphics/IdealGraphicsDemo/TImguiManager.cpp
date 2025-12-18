@@ -87,7 +87,7 @@ bool TImguiManager::MsgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 		return false;
 	}
 
-	if (true == ::ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+	if (1 == ::ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
 	{
 		return true;
 	}

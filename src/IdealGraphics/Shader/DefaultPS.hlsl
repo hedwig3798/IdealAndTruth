@@ -5,7 +5,7 @@ float4 main(VertexOut pin)
 	: SV_TARGET
 {
 	// textuer sampling
-    float4 texColor = g_Texture.Sample(g_Sampler, pin.tex);
+    float4 texColor = g_diffuse.Sample(g_Sampler, pin.tex);
     texColor.a = 1.0f;
     
     // result diff, spec

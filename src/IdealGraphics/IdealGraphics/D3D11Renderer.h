@@ -477,10 +477,10 @@ public:
 	/// <param name="_metalic">陛加己</param>
 	/// <returns>己傍咯何</returns>
 	IE CreateDefaultTextuer(
-		const Color& _diffuse
-		, const Color& _normal
-		, const Color& _roughness
-		, const Color& _metalic
+		const Vector3& _diffuse
+		, const Vector3& _normal
+		, const Vector3& _roughness
+		, const Vector3& _metalic
 	) override;
 };
 

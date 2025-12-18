@@ -228,6 +228,14 @@ public:
 			UINT m_bindFlags;
 			UINT m_viewDimension;
 		} m_renderTargetView;
+
+		struct DefaultTextuerSetting
+		{
+			Vector3 m_diffuse;
+			Vector3 m_normal;
+			Vector3 m_roughness;
+			Vector3 m_metalic;
+		} m_defaultTextuerSetting;
 	};
 
 	enum class VERTEX_TYPE
@@ -426,10 +434,10 @@ public:
 	/// <param name="_metalic">陛加己</param>
 	/// <returns>己傍咯何</returns>
 	virtual IE CreateDefaultTextuer(
-		const Color& _diffuse
-		, const Color& _normal
-		, const Color& _roughness
-		, const Color& _metalic
+		const Vector3& _diffuse
+		, const Vector3& _normal
+		, const Vector3& _roughness
+		, const Vector3& _metalic
 	) = 0;
 };
 

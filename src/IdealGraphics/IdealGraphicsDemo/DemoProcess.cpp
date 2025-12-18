@@ -48,7 +48,6 @@ void DemoProcess::Initialize(HWND _hwnd)
 	}
 	m_renderer = ((IRenderer * (*)())GetProcAddress(m_rendererDll, "CreateD3D11Renderer"))();
 
-
 	m_renderer->SetRenderSize(m_renderWidth, m_renderHight);
 
 	// 초기화
@@ -206,6 +205,15 @@ void DemoProcess::CreateRendererState()
 
 	m_rendererState.FileOpenCallbackFunc = DemoProcess::OpenFile;
 	m_rendererState.m_fms = static_cast<void*>(&m_fms);
+
+	table defaultTextuerSetting = LuaValueGetter<table>::Get(m_luaState, "DefaultTextuerSetting");
+	IRenderer::InitializeState::DefaultTextuerSetting textuerSetting = {};
+	textuerSetting.m_diffuse = LuaValueGetter<Vector3>::Get(defaultTextuerSetting, "Diffuse");
+	textuerSetting.m_normal = LuaValueGetter<Vector3>::Get(defaultTextuerSetting, "Noraml");
+	textuerSetting.m_roughness = LuaValueGetter<Vector3>::Get(defaultTextuerSetting, "Roughness");
+	textuerSetting.m_metalic = LuaValueGetter<Vector3>::Get(defaultTextuerSetting, "Metalic");
+
+	m_rendererState.m_defaultTextuerSetting = textuerSetting;
 }
 
 void DemoProcess::Settings()

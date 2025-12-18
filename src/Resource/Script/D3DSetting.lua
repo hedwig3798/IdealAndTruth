@@ -5,6 +5,15 @@ WindowSetting =
     Height = 720,
 }
 
+-- default textuer color (float : 0 ~ 1)
+DefaultTextuerSetting = 
+{
+    Diffuse = {0.5, 0.5, 0.5},
+    Noraml = {0.5, 0.5, 1.0},
+    Roughness = {0.5, 0.5, 0.5},
+    Metalic = {0.0, 0.0, 0.0},
+}
+
 -- 렌더 
 RendererInitializeState = 
 {

@@ -228,6 +228,14 @@ public:
 			UINT m_bindFlags;
 			UINT m_viewDimension;
 		} m_renderTargetView;
+
+		struct DefaultTextuerSetting
+		{
+			Vector3 m_diffuse;
+			Vector3 m_normal;
+			Vector3 m_roughness;
+			Vector3 m_metalic;
+		} m_defaultTextuerSetting;
 	};
 
 	enum class VERTEX_TYPE
@@ -416,6 +424,21 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	virtual IE SetSkyTextuer(const TextuerData& _textuer) = 0;
+
+	/// <summary>
+	/// 텍스쳐가 없을 때 사용할 색 값
+	/// </summary>
+	/// <param name="_diffuse">색</param>
+	/// <param name="_normal">노말</param>
+	/// <param name="_roughness">거칠기</param>
+	/// <param name="_metalic">금속성</param>
+	/// <returns>성공여부</returns>
+	virtual IE CreateDefaultTextuer(
+		const Vector3& _diffuse
+		, const Vector3& _normal
+		, const Vector3& _roughness
+		, const Vector3& _metalic
+	) = 0;
 };
 
 /// <summary>
