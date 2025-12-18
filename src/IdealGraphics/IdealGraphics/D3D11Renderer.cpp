@@ -1135,6 +1135,88 @@ IE D3D11Renderer::SetSkyTextuer(const TextuerData& _textuer)
 	return IE::I_OK;
 }
 
+IE D3D11Renderer::CreateDefaultTextuer(const Color& _diffuse, const Color& _normal, const Color& _roughness, const Color& _metalic)
+{
+	if (nullptr == m_device)
+	{
+		return IE::NULL_POINTER_ACCESS;
+	}
+
+	// 모든 텍스쳐가 공유 할 구조체
+	D3D11_TEXTURE2D_DESC texDesc = {};
+	texDesc.Width = 1;
+	texDesc.Height = 1;
+	texDesc.MipLevels = 1;
+	texDesc.ArraySize = 1;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = texDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	// default textier creator lamda
+	auto Creator = [&](const Color& _color, ComPtr<ID3D11ShaderResourceView>& _targetSRV) -> IE
+		{
+			HRESULT hr = S_OK;
+
+			// float 색을 0 ~ 255 사이로 스케일링
+			unsigned char rawColor[4] = 
+			{
+				static_cast<unsigned char>(_color.x * 255.0f),
+				static_cast<unsigned char>(_color.y * 255.0f),
+				static_cast<unsigned char>(_color.z * 255.0f),
+				static_cast<unsigned char>(_color.w * 255.0f)
+			};
+
+			ComPtr<ID3D11Texture2D> textuer;
+			D3D11_SUBRESOURCE_DATA initData;
+
+			initData.pSysMem = rawColor;
+			initData.SysMemPitch = 4;
+			hr = m_device->CreateTexture2D(&texDesc, &initData, textuer.GetAddressOf());
+			if (S_OK != hr)
+			{
+				return IE::CREATE_D3D_TEXTURE_FAIL;
+			}
+			hr = m_device->CreateShaderResourceView(textuer.Get(), &srvDesc, _targetSRV.GetAddressOf());
+			if (S_OK != hr)
+			{
+				return IE::CREATE_D3D_SRV_FAIL;
+			}
+			return IE::I_OK;
+		};
+
+	// create default src
+	IE iok = IE::I_OK;
+	iok = Creator(_diffuse, m_defaultDiffuse);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+	iok = Creator(_normal, m_defaultNormal);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+	iok = Creator(_roughness, m_defaultRoughess);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+	iok = Creator(_metalic, m_defaultMetalic);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+
+	return IE::I_OK;
+}
+
 IE D3D11Renderer::Initialize(const InitializeState& _initalizeState, HWND _hwnd)
 {
 	m_hwnd = _hwnd;
@@ -1378,7 +1460,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 			, sizeof(DirectionLightBufferData) * m_dirctionLightVector.size()
 		);
 
-		m_deviceContext->PSSetShaderResources(1, 1, m_dirctionLightBuffer.m_srv.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(4, 1, m_dirctionLightBuffer.m_srv.GetAddressOf());
 	}
 
 	if (true == m_pointLightBuffer.isDirty)
@@ -1389,6 +1471,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 			, m_pointLightVector.data()
 			, sizeof(DirectionLightBufferData) * m_pointLightVector.size()
 		);
+		m_deviceContext->PSSetShaderResources(5, 1, m_pointLightBuffer.m_srv.GetAddressOf());
 	}
 
 	if (true == m_spotLightBuffer.isDirty)
@@ -1399,6 +1482,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 			, m_spotLightVector.data()
 			, sizeof(DirectionLightBufferData) * m_spotLightVector.size()
 		);
+		m_deviceContext->PSSetShaderResources(6, 1, m_spotLightBuffer.m_srv.GetAddressOf());
 	}
 
 	// 빛의 총 갯수가 바뀌면 새로 바인딩
@@ -1434,8 +1518,6 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 		m_deviceContext->PSSetShaderResources(4, 1, m_skyTextuer.GetAddressOf());
 		BindVertexBuffer(m_skyRenderSet.m_vb, sizeof(VertexPU));
 		BindIndexBuffer(m_skyRenderSet.m_ib);
-		// BindWorldBuffer(m_mainCamera.lock()->GetViewMatrix());
-		// BindWorldBuffer(m_mainCamera.lock()->GetViewMatrix());
 		m_deviceContext->DrawIndexed(m_skyIndexSize, 0, 0);
 	}
 

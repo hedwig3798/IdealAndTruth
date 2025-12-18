@@ -55,13 +55,16 @@ struct SpotLight
     float3 pad;
 };
 
-Texture2D g_Texture : register(t0);
+Texture2D g_diffuse : register(t0);
+Texture2D g_normal : register(t1);
+Texture2D g_roughness : register(t2);
+Texture2D g_metalize : register(t3);
 
-StructuredBuffer<DirectionLight> g_DirectionalLights : register(t1);
-StructuredBuffer<PointLight> g_PointLights : register(t2);
-StructuredBuffer<SpotLight> g_SpotLights : register(t3);
+StructuredBuffer<DirectionLight> g_DirectionalLights : register(t4);
+StructuredBuffer<PointLight> g_PointLights : register(t5);
+StructuredBuffer<SpotLight> g_SpotLights : register(t6);
 
-TextureCube g_skyTextuer : register(t4);
+TextureCube g_skyTextuer : register(t7);
 
 
 SamplerState g_Sampler : register(s0);

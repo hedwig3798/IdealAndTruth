@@ -39,19 +39,9 @@ void TImguiManager::Render()
 	static float f = 0.0f;
 	static int counter = 0;
 
-	ImGui::Begin("Hello, world!");
+	ImGui::Begin("Benchmarking");
 
 	ImGui::Text("FPS : %d", m_fpsViwe);
-
-	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-
-	if (ImGui::Button("Button"))
-	{
-		counter++;
-	}
-
-	ImGui::SameLine();
-	ImGui::Text("counter = %d", counter);
 
 	ImGui::End();
 

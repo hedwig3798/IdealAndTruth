@@ -15,6 +15,7 @@
 #include "CustomBuffer.h"
 #include "DXTK/DDSTextureLoader.h"
 #include "DXTK/WICTextureLoader.h"
+#include "DXTK/DirectXTex.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -128,9 +129,16 @@ private:
 	UINT m_renderWidth;
 	UINT m_renderHight;
 
+	// skybox component
 	RenderStruct m_skyRenderSet;
 	UINT m_skyIndexSize;
 	ComPtr<ID3D11ShaderResourceView> m_skyTextuer;
+
+	// default textuer
+	ComPtr<ID3D11ShaderResourceView> m_defaultDiffuse;
+	ComPtr<ID3D11ShaderResourceView> m_defaultNormal;
+	ComPtr<ID3D11ShaderResourceView> m_defaultRoughess;
+	ComPtr<ID3D11ShaderResourceView> m_defaultMetalic;
 
 public:
 	D3D11Renderer();
@@ -459,5 +467,20 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	IE SetSkyTextuer(const TextuerData& _textuer) override;
+
+	/// <summary>
+	/// 텍스쳐가 없을 때 사용할 색 값
+	/// </summary>
+	/// <param name="_diffuse">색</param>
+	/// <param name="_normal">노말</param>
+	/// <param name="_roughness">거칠기</param>
+	/// <param name="_metalic">금속성</param>
+	/// <returns>성공여부</returns>
+	IE CreateDefaultTextuer(
+		const Color& _diffuse
+		, const Color& _normal
+		, const Color& _roughness
+		, const Color& _metalic
+	) override;
 };
 

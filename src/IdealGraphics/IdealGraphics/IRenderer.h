@@ -416,6 +416,21 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	virtual IE SetSkyTextuer(const TextuerData& _textuer) = 0;
+
+	/// <summary>
+	/// 텍스쳐가 없을 때 사용할 색 값
+	/// </summary>
+	/// <param name="_diffuse">색</param>
+	/// <param name="_normal">노말</param>
+	/// <param name="_roughness">거칠기</param>
+	/// <param name="_metalic">금속성</param>
+	/// <returns>성공여부</returns>
+	virtual IE CreateDefaultTextuer(
+		const Color& _diffuse
+		, const Color& _normal
+		, const Color& _roughness
+		, const Color& _metalic
+	) = 0;
 };
 
 /// <summary>
