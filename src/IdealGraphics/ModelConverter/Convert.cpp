@@ -76,7 +76,8 @@ void Converter::ImportDataWithThread()
 			| aiProcess_JoinIdenticalVertices // 동일한 위치의 정점을 하나의 정점으로 병합 (정점 데이터의 중복을 제거하고 모델 최적화)
 			| aiProcess_Triangulate  // 삼각형 메쉬 형태로 구성
 			| aiProcess_GenUVCoords  // UV 정보 생성
-			| aiProcess_GenNormals;  // Normal 정보 생성
+			| aiProcess_GenNormals  // Normal 정보 생성
+			| aiProcess_CalcTangentSpace; // tangent 정보 생성
 
 		// 일단 넣어는 놓는다
 		// 나중에 수정해야됨
@@ -210,6 +211,14 @@ void Converter::ReadMeshData(
 				mesh.m_vertex[v].m_uv.x = srcMesh->mTextureCoords[0][v].x;
 				mesh.m_vertex[v].m_uv.y = srcMesh->mTextureCoords[0][v].y;
 			}
+
+			// tangent
+			if (srcMesh->HasTangentsAndBitangents())
+			{
+				mesh.m_vertex[v].m_tangent.x = srcMesh->mTangents[v].x;
+				mesh.m_vertex[v].m_tangent.y = srcMesh->mTangents[v].x;
+				mesh.m_vertex[v].m_tangent.z = srcMesh->mTangents[v].z;
+			}
 		}
 
 		/// index
@@ -252,7 +261,7 @@ void Converter::WriteModel(const asModel& _model)
 		// vertex
 		uint64_t vertexCount = itr.m_vertex.size();
 		file.write(reinterpret_cast<char*>(&vertexCount), sizeof(uint64_t));
-		file.write(reinterpret_cast<const char*>(itr.m_vertex.data()), vertexCount * sizeof(VertexPUN));
+		file.write(reinterpret_cast<const char*>(itr.m_vertex.data()), vertexCount * sizeof(VertexPUTN));
 
 		// index
 		uint64_t indexCount = itr.m_index.size();

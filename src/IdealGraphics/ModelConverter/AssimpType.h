@@ -21,6 +21,14 @@ struct VertexPUN
 	Vector2 m_uv;
 };
 
+struct VertexPUTN
+{
+	Vector3 m_position;
+	Vector3 m_normal;
+	Vector3 m_tangent;
+	Vector2 m_uv;
+};
+
 /// <summary>
 /// Assimp 를 통해서 얻어낸 정보들을 메모리에 저장해둔다.
 /// 이 정보들로 customData 파일을 만든다.
@@ -39,7 +47,7 @@ struct asMesh
 {
 	std::string m_name;
 
-	std::vector<VertexPUN> m_vertex;
+	std::vector<VertexPUTN> m_vertex;
 	std::vector<float> m_bones;
 	std::vector<float> m_weight;
 	std::vector<int> m_index;

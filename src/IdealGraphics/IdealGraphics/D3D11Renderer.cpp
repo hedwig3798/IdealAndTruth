@@ -636,6 +636,12 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 		eleNum = 2;
 		break;
 	}
+	case IRenderer::VERTEX_TYPE::VertexPNTU:
+	{
+		decs = VertexPNTU::m_IADesc;
+		eleNum = 4;
+		break;
+	}
 	// 타입이 없으면 그냥 슈퍼 타입 지정
 	default:
 	{
@@ -891,14 +897,14 @@ IE D3D11Renderer::CreateVertexIndexBuffer(const std::wstring& _name)
 		}
 		std::memcpy(&vertexCount, stream.data() + offset, sizeof(uint64_t));
 		offset += sizeof(uint64_t);
-		uint64_t vertexByteSize = sizeof(VertexPUN) * vertexCount;
+		uint64_t vertexByteSize = sizeof(VertexPNTU) * vertexCount;
 
 		// 정점 데이터
 		if (offset + vertexByteSize > stream.size())
 		{
 			return IE::OUT_OF_POINTER_BOUNDARY;
 		}
-		std::vector<VertexPUN> vertexData;
+		std::vector<VertexPNTU> vertexData;
 		vertexData.resize(vertexCount);
 		std::memcpy(vertexData.data(), stream.data() + offset, vertexByteSize);
 		offset += vertexByteSize;
@@ -939,7 +945,7 @@ IE D3D11Renderer::CreateVertexIndexBuffer(const std::wstring& _name)
 		{
 			return IE::CREATE_D3D_BUFFER_FAIL;
 		}
-		m_vBuffer[_name].second = sizeof(VertexPUN);
+		m_vBuffer[_name].second = sizeof(VertexPNTU);
 
 
 		D3D11_BUFFER_DESC ib = {};

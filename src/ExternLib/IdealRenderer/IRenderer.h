@@ -246,6 +246,7 @@ public:
 		VertexPN,
 		VertexPUN,
 		VertexPC,
+		VertexPNTU,
 		END,
 	};
 

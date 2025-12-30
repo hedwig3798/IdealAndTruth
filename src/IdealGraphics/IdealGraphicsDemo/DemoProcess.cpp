@@ -62,7 +62,7 @@ void DemoProcess::Initialize(HWND _hwnd)
 	IE_ASSERT(m_renderer->SetBackgroundColor(0, 0, 0, 1));
 
 	// 정점 셰이더 생성
-	IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, L"DefaultVS.cso"));
+	IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPNTU, L"DefaultVS.cso"));
 
 	// 픽셀 셰이더 생성
 	IE_ASSERT(m_renderer->CreatePixelShader(L"DefaultPS.cso"));
@@ -399,7 +399,7 @@ void DemoProcess::ReadScene(std::wstring _name)
 		renderObject->m_material = LuaValueGetter<std::wstring>::Get(m_luaState, "Material");
 
 		IE_ASSERT(m_renderer->CreateVertexIndexBuffer(renderObject->m_mesh));
-		IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPUN, renderObject->m_vertexShader));
+		IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPNTU, renderObject->m_vertexShader));
 		IE_ASSERT(m_renderer->CreatePixelShader(renderObject->m_pixelShader));
 
 		position = LuaValueGetter<Vector3>::Get(m_luaState, "Position");
