@@ -6,6 +6,7 @@ float4 main(VertexOut pin)
 {
 	// textuer sampling
     float4 texColor = g_diffuse.Sample(g_Sampler, pin.tex);
+    // pow(texColor, 2.2f);
     texColor.a = 1.0f;
     
     // result diff, spec
@@ -71,10 +72,8 @@ float4 main(VertexOut pin)
     float3 specular = spec;
     
     float3 finalColor = (ambient + diffuse + specular) * texColor.rgb;
-    // finalColor = pow(finalColor, 1.0f / 2.2f);
-    
+    // pow(finalColor, 1 / 2.2f);
     float4 result = float4(finalColor.xyz, 1);
-    // float4 result = float4(texColor.xyz, 1);
     
     return result;
 }

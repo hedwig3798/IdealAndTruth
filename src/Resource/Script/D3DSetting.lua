@@ -40,7 +40,7 @@ RendererInitializeState =
     {
         refreshRateNumerator = 60,
         refreshRateDenominator = 1,
-        format = DXGI_FORMAT["DXGI_FORMAT_R8G8B8A8_UNORM"],
+        format = DXGI_FORMAT["DXGI_FORMAT_R8G8B8A8_UNORM_SRGB"],
         scanlineOrdering = DXGI_MODE_SCANLINE_ORDER["DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED"],
         scaling = DXGI_MODE_SCANLINE_ORDER["DXGI_MODE_SCALING_UNSPECIFIED"],
         sampleCount = 1,

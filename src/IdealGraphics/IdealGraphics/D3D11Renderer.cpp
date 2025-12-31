@@ -1156,7 +1156,7 @@ IE D3D11Renderer::CreateDefaultTextuer(const Vector3& _diffuse, const Vector3& _
 	texDesc.Height = 1;
 	texDesc.MipLevels = 1;
 	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.Usage = D3D11_USAGE_DEFAULT;
 	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -1360,20 +1360,32 @@ IE D3D11Renderer::CreateTexture(const TextuerData* _textuerData)
 	ComPtr<ID3D11ShaderResourceView> albedoSrv;
 	if (L"dds" == format)
 	{
-		hr = DirectX::CreateDDSTextureFromMemory(
+		hr = DirectX::CreateDDSTextureFromMemoryEx(
 			m_device.Get()
 			, reinterpret_cast<const uint8_t*>(_textuerData->m_data->data())
 			, _textuerData->m_data->size()
+			, 0
+			, D3D11_USAGE_DEFAULT
+			, D3D11_BIND_SHADER_RESOURCE
+			, 0
+			, 0
+			, DirectX::DDS_LOADER_FORCE_SRGB
 			, nullptr
 			, albedoSrv.GetAddressOf()
 		);
 	}
 	else if (L"png" == format)
 	{
-		hr = DirectX::CreateWICTextureFromMemory(
+		hr = DirectX::CreateWICTextureFromMemoryEx(
 			m_device.Get()
 			, reinterpret_cast<const uint8_t*>(_textuerData->m_data->data())
 			, _textuerData->m_data->size()
+			, 0
+			, D3D11_USAGE_DEFAULT
+			, D3D11_BIND_SHADER_RESOURCE
+			, 0
+			, 0
+			, DirectX::WIC_LOADER_FORCE_SRGB
 			, nullptr
 			, albedoSrv.GetAddressOf()
 		);
