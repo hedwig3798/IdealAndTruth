@@ -10,9 +10,14 @@ VertexOut main(VertexIn vin)
     vout.worldPos = vout.posH;
     vout.posH = mul(vout.posH, g_view);
     vout.posH = mul(vout.posH, g_proj);
-
+    
 	// textuer position
     vout.tex = vin.tex;
-    vout.normal = vin.normal;
+    
+    // normal transform
+    vout.normal = normalize(mul(vin.normal, (float3x3) (transpose(g_worldInvers))));
+    vout.tangent = normalize(vin.tangent);
+    vout.binormal = normalize(cross(vout.normal, vout.tangent));
+    
     return vout;
 }

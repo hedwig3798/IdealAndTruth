@@ -60,8 +60,8 @@ public:
 	/// </summary>
 	struct TextuerData
 	{
-		std::wstring m_name;
-		CONST_FILE_STREAM& m_data;
+		std::wstring m_name = L"";
+		CONST_FILE_STREAM* m_data = nullptr;
 	};
 	
 	/// <summary>
@@ -70,8 +70,11 @@ public:
 	/// </summary>
 	struct MaterialData
 	{
-		Vector4 m_color;
-		TextuerData& m_albedo;
+		Vector4 m_color = {};
+		TextuerData* m_albedo = nullptr;
+		TextuerData* m_normal = nullptr;
+		TextuerData* m_roughness = nullptr;
+		TextuerData* m_metalic = nullptr;
 	};
 
 	/// <summary>
@@ -291,7 +294,7 @@ public:
 	/// 텍스쳐 데이터 생성
 	/// </summary>
 	/// <returns>오브젝트 GUID</returns>
-	virtual IE CreateTexture(const TextuerData& _textuerData) = 0;
+	virtual IE CreateTexture(const TextuerData* _textuerData) = 0;
 
 	/// <summary>
 	/// 머테리얼 데이터 생성
@@ -424,7 +427,7 @@ public:
 	/// 스카이 박스에 사용될 텍스쳐
 	/// </summary>
 	/// <returns></returns>
-	virtual IE SetSkyTextuer(const TextuerData& _textuer) = 0;
+	virtual IE SetSkyTextuer(const TextuerData* _textuer) = 0;
 
 	/// <summary>
 	/// 텍스쳐가 없을 때 사용할 색 값

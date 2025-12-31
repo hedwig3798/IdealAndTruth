@@ -19,6 +19,7 @@ struct CameraBufferData
 struct WorldBufferData
 {
 	Matrix m_world;
+	Matrix m_worldInvers;
 };
 
 /// <summary>

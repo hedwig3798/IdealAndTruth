@@ -39,6 +39,9 @@ private:
 	struct Material
 	{
 		ComPtr<ID3D11ShaderResourceView> m_albedo;
+		ComPtr<ID3D11ShaderResourceView> m_normal;
+		ComPtr<ID3D11ShaderResourceView> m_roughness;
+		ComPtr<ID3D11ShaderResourceView> m_metalic;
 	};
 
 	/// <summary>
@@ -331,7 +334,7 @@ public:
 	/// 텍스쳐 생성
 	/// </summary>
 	/// <returns>텍스쳐 UID</returns>
-	IE CreateTexture(const TextuerData& _textuerData) override;
+	IE CreateTexture(const TextuerData* _textuerData) override;
 
 	/// <summary>
 	/// 머테리얼 생성
@@ -466,7 +469,7 @@ public:
 	/// 스카이 박스에 사용될 텍스쳐
 	/// </summary>
 	/// <returns></returns>
-	IE SetSkyTextuer(const TextuerData& _textuer) override;
+	IE SetSkyTextuer(const TextuerData* _textuer) override;
 
 	/// <summary>
 	/// 텍스쳐가 없을 때 사용할 색 값

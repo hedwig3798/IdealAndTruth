@@ -18,8 +18,8 @@ struct LightInput
 
 void DirectionLigthCalculate(LightInput _input, inout float _diff, inout float _spec)
 {
-    _diff += saturate(dot(_input.N, _input.L));
-    _spec += pow(saturate(dot(_input.N, _input.H)), 16.0f);
+    _diff += max(dot(_input.N, _input.L), 0);
+    _spec += pow(saturate(dot(_input.N, _input.H)), 32.0f);
     
     return;
 }

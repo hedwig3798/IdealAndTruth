@@ -16,6 +16,8 @@ struct VertexOut
     float3 normal : NORMAL;
     float2 tex : TEXCOORD0;
     float4 worldPos : TEXCOORD1;
+    float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
 };
 
 struct DirectionLight
@@ -56,6 +58,7 @@ struct SpotLight
 cbuffer cbPerObject : register(b0)
 {
     matrix g_world;
+    matrix g_worldInvers;
 };
 
 // 카메라 관련 구조체

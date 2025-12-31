@@ -74,10 +74,10 @@ void DemoProcess::Initialize(HWND _hwnd)
 	m_camera.lock()->SetAspectRatio(static_cast<float>(m_renderWidth) / static_cast<float>(m_renderHight));
 
 	// 정점 버퍼 생성
-	IE_ASSERT(m_renderer->CreateVertexIndexBuffer(L"gun.iver"));
+	// IE_ASSERT(m_renderer->CreateVertexIndexBuffer(L"gun.iver"));
 
 	// 머테리얼 데이터로 머테리얼 만들기
-	CreateMaterial(L"GunMaterial.lua");
+	// CreateMaterial(L"GunMaterial.lua");
 
 	// 씬 스크립트 로드
 	ReadScene(L"DemoScene.lua");
@@ -389,8 +389,8 @@ void DemoProcess::ReadScene(std::wstring _name)
 			return;
 		}
 
+		// 매쉬 lua 파싱
 		DO_STREAM(m_luaState, meshFS);
-
 		std::shared_ptr<IRenderer::IRenderObject> renderObject = std::make_shared<IRenderer::IRenderObject>();
 		renderObject->m_isDraw = true;
 		renderObject->m_mesh = LuaValueGetter<std::wstring>::Get(m_luaState, "Mesh");
@@ -398,14 +398,17 @@ void DemoProcess::ReadScene(std::wstring _name)
 		renderObject->m_pixelShader = LuaValueGetter<std::wstring>::Get(m_luaState, "PixelSahder");
 		renderObject->m_material = LuaValueGetter<std::wstring>::Get(m_luaState, "Material");
 
+		// 정점 버퍼, 인덱스 버퍼, 셰이더 객체 생성
 		IE_ASSERT(m_renderer->CreateVertexIndexBuffer(renderObject->m_mesh));
 		IE_ASSERT(m_renderer->CreateVertexShader(IRenderer::VERTEX_TYPE::VertexPNTU, renderObject->m_vertexShader));
 		IE_ASSERT(m_renderer->CreatePixelShader(renderObject->m_pixelShader));
 
+		// 로컬 변환 값 가져오기
 		position = LuaValueGetter<Vector3>::Get(m_luaState, "Position");
 		rotation = LuaValueGetter<Vector3>::Get(m_luaState, "Rotation");
 		scale = LuaValueGetter<Vector3>::Get(m_luaState, "Scale");
 
+		// 로컬 변환값을 월드에 적용
 		renderObject->m_meshtransform = Matrix::Identity;
 		renderObject->m_meshtransform *= Matrix::CreateScale(scale);
 		renderObject->m_meshtransform *= Matrix::CreateFromYawPitchRoll(rotation);
@@ -420,14 +423,47 @@ void DemoProcess::ReadScene(std::wstring _name)
 		}
 		DO_STREAM(m_luaState, materialFS);
 
-		table albedoTable = LuaValueGetter<table>::Get(m_luaState, "Textures");
-		std::wstring albedoName = LuaValueGetter<std::wstring>::Get(albedoTable, "albedo");
+		// 텍스쳐 데이터 가져오기
+		IRenderer::TextuerData albedoData;
+		IRenderer::TextuerData normalData;
+		IRenderer::TextuerData roughnessData;
+		IRenderer::TextuerData metalicData;
 
-		FILE_STREAM textuerStream;
-		m_fms.OpenFile(albedoName, textuerStream);
+		FILE_STREAM albedoStream;
+		FILE_STREAM normalStream;
+		FILE_STREAM roughnessStream;
+		FILE_STREAM metalicStream;
 
-		IRenderer::TextuerData albedoData{ albedoName, textuerStream };
-		IRenderer::MaterialData materialData{ {0, 0, 0, 1}, albedoData };
+		table textuerTable = LuaValueGetter<table>::Get(m_luaState, "Textures");
+
+		auto TextuerDataGetter = [&](IRenderer::TextuerData& _textuerData, const std::string& _name, FILE_STREAM& _textuerStream)
+			{
+				std::wstring dataName = LuaValueGetter<std::wstring>::Get(textuerTable, _name.c_str());
+				if (false == dataName.empty())
+				{
+					m_fms.OpenFile(dataName, _textuerStream);
+
+					_textuerData.m_name = dataName;
+					_textuerData.m_data = &_textuerStream;
+				}
+				else
+				{
+					_textuerData.m_name = ::StrToWstr(_name);
+					_textuerData.m_data = nullptr;
+				}
+			};
+
+		TextuerDataGetter(albedoData, "albedo", albedoStream);
+		TextuerDataGetter(normalData, "normal", normalStream);
+		TextuerDataGetter(roughnessData, "roughness", roughnessStream);
+		TextuerDataGetter(metalicData, "metalic", metalicStream);
+
+		IRenderer::MaterialData materialData;
+		materialData.m_color = { 0,0,0,1 };
+		materialData.m_albedo = &albedoData;
+		materialData.m_normal = &normalData;
+		materialData.m_roughness = &roughnessData;
+		materialData.m_metalic = &metalicData;
 
 		IE_ASSERT(m_renderer->CreateMaterial(renderObject->m_material, materialData));
 
@@ -518,9 +554,9 @@ void DemoProcess::CreateMaterial(const std::wstring& _path)
 	{
 		m_fms.OpenFile(albedo, albedoStream);
 	}
-	IRenderer::TextuerData albetotextuer{ albedo, albedoStream };
+	IRenderer::TextuerData albetotextuer{ albedo, &albedoStream };
 
-	IRenderer::MaterialData material{ {0,0,0,0},  albetotextuer };
+	IRenderer::MaterialData material{ {0,0,0,0},  &albetotextuer };
 
 	IE_ASSERT(m_renderer->CreateMaterial(_path, material));
 
@@ -627,12 +663,12 @@ void DemoProcess::SetSkyBox()
 	{
 		return;
 	}
-	IRenderer::TextuerData tdata{ textuer , ts };
+	IRenderer::TextuerData tdata{ textuer , &ts };
 
 	// create skybox render data
 	m_renderer->SetSkyVS(IRenderer::VERTEX_TYPE::VertexPU, vs);
 	m_renderer->SetSkyPS(ps);
-	m_renderer->SetSkyTextuer(tdata);
+	m_renderer->SetSkyTextuer(&tdata);
 }
 
 LRESULT CALLBACK DemoProcess::WndProc(

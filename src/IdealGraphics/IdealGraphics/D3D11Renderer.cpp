@@ -444,6 +444,7 @@ IE D3D11Renderer::BindMainCameraBuffer()
 	dataptr->m_camearaPos = m_mainCamera.lock()->GetPosition();
 
 	m_deviceContext->VSSetConstantBuffers(1, 1, m_cameraCBuffer.GetAddressOf());
+	m_deviceContext->PSSetConstantBuffers(1, 1, m_cameraCBuffer.GetAddressOf());
 	m_deviceContext->Unmap(m_cameraCBuffer.Get(), 0);
 
 	return IE::I_OK;
@@ -469,6 +470,7 @@ IE D3D11Renderer::BindWorldBuffer(const Matrix& _matrix)
 
 	WorldBufferData* dataptr = (WorldBufferData*)mappedResource.pData;
 	dataptr->m_world = _matrix.Transpose();
+	dataptr->m_worldInvers = _matrix.Invert().Transpose();
 
 	m_deviceContext->VSSetConstantBuffers(0, 1, m_worldBuffer.GetAddressOf());
 	m_deviceContext->Unmap(m_worldBuffer.Get(), 0);
@@ -1127,7 +1129,7 @@ IE D3D11Renderer::SetSkyPS(const std::wstring& _ps)
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::SetSkyTextuer(const TextuerData& _textuer)
+IE D3D11Renderer::SetSkyTextuer(const TextuerData* _textuer)
 {
 	IE iok;
 	iok = CreateTexture(_textuer);
@@ -1136,7 +1138,7 @@ IE D3D11Renderer::SetSkyTextuer(const TextuerData& _textuer)
 		return iok;
 	}
 
-	m_skyTextuer = m_textuerMap[_textuer.m_name];
+	m_skyTextuer = m_textuerMap[_textuer->m_name];
 
 	return IE::I_OK;
 }
@@ -1340,19 +1342,19 @@ IE D3D11Renderer::ImportAnimation()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
+IE D3D11Renderer::CreateTexture(const TextuerData* _textuerData)
 {
 	HRESULT hr = S_OK;
 
 	// 확장자 탐색. 가장 마지막 . 찾기
-	size_t pos = _textuerData.m_name.find_last_of('.');
+	size_t pos = _textuerData->m_name.find_last_of('.');
 	if (pos == std::string::npos)
 	{
 		return IE::STREAM_ERROR;
 	}
 
 	// 확장자 분리
-	std::wstring format = _textuerData.m_name.substr(pos + 1);
+	std::wstring format = _textuerData->m_name.substr(pos + 1);
 	std::transform(format.begin(), format.end(), format.begin(), ::tolower);
 
 	ComPtr<ID3D11ShaderResourceView> albedoSrv;
@@ -1360,8 +1362,8 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 	{
 		hr = DirectX::CreateDDSTextureFromMemory(
 			m_device.Get()
-			, reinterpret_cast<const uint8_t*>(_textuerData.m_data.data())
-			, _textuerData.m_data.size()
+			, reinterpret_cast<const uint8_t*>(_textuerData->m_data->data())
+			, _textuerData->m_data->size()
 			, nullptr
 			, albedoSrv.GetAddressOf()
 		);
@@ -1370,8 +1372,8 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 	{
 		hr = DirectX::CreateWICTextureFromMemory(
 			m_device.Get()
-			, reinterpret_cast<const uint8_t*>(_textuerData.m_data.data())
-			, _textuerData.m_data.size()
+			, reinterpret_cast<const uint8_t*>(_textuerData->m_data->data())
+			, _textuerData->m_data->size()
 			, nullptr
 			, albedoSrv.GetAddressOf()
 		);
@@ -1386,7 +1388,7 @@ IE D3D11Renderer::CreateTexture(const TextuerData& _textuerData)
 		return IE::CREATE_D3D_TEXTURE_FAIL;
 	}
 
-	m_textuerMap[_textuerData.m_name] = albedoSrv;
+	m_textuerMap[_textuerData->m_name] = albedoSrv;
 
 	return IE::I_OK;
 }
@@ -1405,16 +1407,56 @@ IE D3D11Renderer::CreateMaterial(const std::wstring _name, const MaterialData& _
 
 	HRESULT hr = S_OK;
 
+	auto TextuerGen = [&](
+		const TextuerData* _data
+		, ComPtr<ID3D11ShaderResourceView> _defaultTextuer
+		) -> IE
+		{
+			if (_data == nullptr)
+			{
+				return IE::NULL_POINTER_ACCESS;
+			}
 
+			if (nullptr == _data->m_data)
+			{
+				m_textuerMap[_data->m_name] = _defaultTextuer;
+				return IE::I_OK;
+			}
+			else
+			{
+				return CreateTexture(_data);
+			}
+		};
+	IE iok;
 
-	IE ie = CreateTexture(_material.m_albedo);
-
-	if (IE::I_OK != ie)
+	iok = TextuerGen(_material.m_albedo, m_defaultDiffuse);
+	if (IE::I_OK != iok)
 	{
-		return ie;
+		return iok;
 	}
 
-	m_materialMap[_name].m_albedo = m_textuerMap[_material.m_albedo.m_name];
+	iok = TextuerGen(_material.m_normal, m_defaultNormal);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+
+	iok = TextuerGen(_material.m_roughness, m_defaultRoughess);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+
+	iok = TextuerGen(_material.m_metalic, m_defaultMetalic);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+
+	m_materialMap[_name].m_albedo = m_textuerMap[_material.m_albedo->m_name];
+	m_materialMap[_name].m_normal = m_textuerMap[_material.m_normal->m_name];
+	m_materialMap[_name].m_roughness = m_textuerMap[_material.m_roughness->m_name];
+	m_materialMap[_name].m_metalic = m_textuerMap[_material.m_metalic->m_name];
 
 	return IE::I_OK;
 }
@@ -1574,6 +1616,9 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 
 			const Material& mat = m_materialMap.find(itr->m_material)->second;
 			m_deviceContext->PSSetShaderResources(0, 1, mat.m_albedo.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(1, 1, mat.m_normal.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(2, 1, mat.m_roughness.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(3, 1, mat.m_metalic.GetAddressOf());
 
 			auto vb = m_vBuffer.find(itr->m_mesh);
 			if (m_vBuffer.end() == vb)

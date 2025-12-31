@@ -14,8 +14,20 @@ float4 main(VertexOut pin)
     
     // direction light
     LightInput lightInput;
+    
     // normal
     lightInput.N = normalize(pin.normal);
+    float3 normalMap = g_normal.Sample(g_Sampler, pin.tex).rgb;
+    normalMap = (normalMap * 2) - 1;
+    
+    float4 testNormal = g_normal.Sample(g_Sampler, pin.tex);
+    
+    lightInput.N 
+    = normalMap.x * pin.tangent 
+    + normalMap.y * pin.binormal 
+    + normalMap.z * lightInput.N;
+    
+    
     lightInput.V = normalize(g_CameraPos - pin.worldPos.xyz);
     [loop]
     for (int d = 0; d < g_NumDirectional; ++d)
@@ -54,13 +66,15 @@ float4 main(VertexOut pin)
     }
     
     // a, d, s
-    float3 ambient = 0.1f * g_DirectionalLights[0].m_color;
-    float3 diffuse = diff * g_DirectionalLights[0].m_color;
-    float3 specular = spec * g_DirectionalLights[0].m_color;
+    float3 ambient = 0.2f;
+    float3 diffuse = diff;
+    float3 specular = spec;
     
     float3 finalColor = (ambient + diffuse + specular) * texColor.rgb;
+    // finalColor = pow(finalColor, 1.0f / 2.2f);
     
     float4 result = float4(finalColor.xyz, 1);
+    // float4 result = float4(texColor.xyz, 1);
     
     return result;
 }
