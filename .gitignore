@@ -39,3 +39,4 @@ pycache/
 packages/
 *.lib
 RawModel/
+*.dds
