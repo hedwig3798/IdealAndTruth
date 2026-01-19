@@ -1,3 +1,7 @@
 VertexShader = "SkyVertexShader.cso"
 PixelShader = "SkyPixelShader.cso"
-Textuer = "skymap.dds"
+
+EnvTextuer = "nightCityEnvHDR.dds"
+DiffuseTextuer = "nightCityDiffuseHDR.dds"
+SpecularTextuer = "nightCitySpecularHDR.dds"
+BRDFTextuer = "nightCityBrdf.dds"

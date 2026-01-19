@@ -75,6 +75,19 @@ public:
 		TextuerData* m_normal = nullptr;
 		TextuerData* m_roughness = nullptr;
 		TextuerData* m_metalic = nullptr;
+		TextuerData* m_AO = nullptr;
+	};
+
+	/// <summary>
+	/// IBL 을 사용할 수 있는 스카이박스 구조체
+	/// IBL 을 사용하지 않아도 쓸 수 있다.
+	/// </summary>
+	struct SkyBoxTextuer
+	{
+		TextuerData* m_env;
+		TextuerData* m_diffuse;
+		TextuerData* m_specular;
+		TextuerData* m_BRDF;
 	};
 
 	/// <summary>
@@ -294,7 +307,7 @@ public:
 	/// 텍스쳐 데이터 생성
 	/// </summary>
 	/// <returns>오브젝트 GUID</returns>
-	virtual IE CreateTexture(const TextuerData* _textuerData) = 0;
+	virtual IE CreateTexture(const TextuerData* _textuerData, bool _force2D = false) = 0;
 
 	/// <summary>
 	/// 머테리얼 데이터 생성
@@ -427,7 +440,7 @@ public:
 	/// 스카이 박스에 사용될 텍스쳐
 	/// </summary>
 	/// <returns></returns>
-	virtual IE SetSkyTextuer(const TextuerData* _textuer) = 0;
+	virtual IE SetSkyTextuer(const SkyBoxTextuer* _textuer) = 0;
 
 	/// <summary>
 	/// 텍스쳐가 없을 때 사용할 색 값

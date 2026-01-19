@@ -69,11 +69,12 @@ void Converter::ImportDataWithThread()
 		Assimp::Importer* importer = new Assimp::Importer();
 		importer->SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, 0);
 
-		unsigned int flag = aiProcess_ConvertToLeftHanded   // 왼손 좌표계 로드, uv 시작점 좌상단, cw 로드 (시계 방향)
-			| aiProcess_MakeLeftHanded
-			//| aiProcess_FlipUVs 
+		unsigned int flag = 
+			// aiProcess_ConvertToLeftHanded   // 왼손 좌표계 로드, uv 시작점 좌상단, cw 로드 (시계 방향)
+			aiProcess_MakeLeftHanded
+			| aiProcess_FlipUVs 
 			//| aiProcess_FlipWindingOrder 
-			| aiProcess_JoinIdenticalVertices // 동일한 위치의 정점을 하나의 정점으로 병합 (정점 데이터의 중복을 제거하고 모델 최적화)
+			// | aiProcess_JoinIdenticalVertices // 동일한 위치의 정점을 하나의 정점으로 병합 (정점 데이터의 중복을 제거하고 모델 최적화)
 			| aiProcess_Triangulate  // 삼각형 메쉬 형태로 구성
 			| aiProcess_GenUVCoords  // UV 정보 생성
 			| aiProcess_GenNormals  // Normal 정보 생성
@@ -216,8 +217,12 @@ void Converter::ReadMeshData(
 			if (srcMesh->HasTangentsAndBitangents())
 			{
 				mesh.m_vertex[v].m_tangent.x = srcMesh->mTangents[v].x;
-				mesh.m_vertex[v].m_tangent.y = srcMesh->mTangents[v].x;
+				mesh.m_vertex[v].m_tangent.y = srcMesh->mTangents[v].y;
 				mesh.m_vertex[v].m_tangent.z = srcMesh->mTangents[v].z;
+
+				mesh.m_vertex[v].m_binormal.x = srcMesh->mBitangents[v].x;
+				mesh.m_vertex[v].m_binormal.y = srcMesh->mBitangents[v].y;
+				mesh.m_vertex[v].m_binormal.z = srcMesh->mBitangents[v].z;
 			}
 		}
 

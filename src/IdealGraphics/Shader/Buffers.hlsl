@@ -7,6 +7,7 @@ struct VertexIn
     float3 posL : POSITION;
     float3 normal : NORMAL;
     float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
     float2 tex : TEXCOORD;
 };
 
@@ -84,16 +85,43 @@ Texture2D g_diffuse : register(t0);
 Texture2D g_normal : register(t1);
 Texture2D g_roughness : register(t2);
 Texture2D g_metalize : register(t3);
+Texture2D g_AO : register(t4);
 
 // 빛 배열
-StructuredBuffer<DirectionLight> g_DirectionalLights : register(t4);
-StructuredBuffer<PointLight> g_PointLights : register(t5);
-StructuredBuffer<SpotLight> g_SpotLights : register(t6);
+StructuredBuffer<DirectionLight> g_DirectionalLights : register(t5);
+StructuredBuffer<PointLight> g_PointLights : register(t6);
+StructuredBuffer<SpotLight> g_SpotLights : register(t7);
 
 // 스카이박스 텍스쳐
-TextureCube g_skyTextuer : register(t7);
+TextureCube g_skyTextuer : register(t8);
+TextureCube g_skyIrradianceMap : register(t9);
+TextureCube g_skySpecularMap : register(t10);
+Texture2D g_skyBrdfMap : register(t11);
 
 // 샘플러
-SamplerState g_Sampler : register(s0);
+SamplerState samAnisotropic
+{
+    Filter = ANISOTROPIC;
+    MaxAnisotropy = 4;
+
+    AddressU = WRAP;
+    AddressV = WRAP;
+};
+
+SamplerState samLinear : register(s1)
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    AddressW = CLAMP;
+};
+
+SamplerState samPointClamp : register(s2)
+{
+    Filter = MIN_MAG_MIP_POINT;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+    AddressW = CLAMP;
+};
 
 

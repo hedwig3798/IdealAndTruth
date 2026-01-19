@@ -16,8 +16,10 @@ VertexOut main(VertexIn vin)
     
     // normal transform
     vout.normal = normalize(mul(vin.normal, (float3x3) (transpose(g_worldInvers))));
-    vout.tangent = normalize(vin.tangent);
-    vout.binormal = normalize(cross(vout.normal, vout.tangent));
+    vout.tangent = normalize(mul(vin.tangent, (float3x3) (transpose(g_worldInvers))));
+    vout.binormal = normalize(mul(vin.binormal, (float3x3) (transpose(g_worldInvers))));
+    // vout.tangent = normalize(vin.tangent);
+    // vout.binormal = normalize(vin.binormal);
     
     return vout;
 }

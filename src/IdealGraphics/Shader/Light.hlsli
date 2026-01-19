@@ -1,3 +1,4 @@
+#include "PBRHelper.hlsli"
 
 struct LightInput
 {
@@ -16,7 +17,7 @@ struct LightInput
     float outAngle; // out angle
 };
 
-void DirectionLigthCalculate(LightInput _input, inout float _diff, inout float _spec)
+void DirectionLigthCalculate(LightInput _input, inout float3 _diff, inout float3 _spec)
 {
     _diff += max(dot(_input.N, _input.L), 0);
     _spec += pow(saturate(dot(_input.N, _input.H)), 32.0f);
@@ -24,7 +25,7 @@ void DirectionLigthCalculate(LightInput _input, inout float _diff, inout float _
     return;
 }
 
-void PointLightCalculate(LightInput _input, inout float _diff, inout float _spec)
+void PointLightCalculate(LightInput _input, inout float3 _diff, inout float3 _spec)
 {
     float ratio = saturate(_input.dis / _input.range);
     float baseA = 1.0 - ratio;
@@ -39,7 +40,7 @@ void PointLightCalculate(LightInput _input, inout float _diff, inout float _spec
     return;
 }
 
-void SpotLightCalculate(LightInput _input, inout float _diff, inout float _spec)
+void SpotLightCalculate(LightInput _input, inout float3 _diff, inout float3 _spec)
 {
     float ratio = saturate(_input.dis / _input.range);
     float baseA = 1.0 - ratio;
@@ -58,3 +59,33 @@ void SpotLightCalculate(LightInput _input, inout float _diff, inout float _spec)
     
     return;
 }
+
+void DirectionLightPBR(
+    LightInput _input
+    , float3 F0
+    , float _roughness
+    , float _metalic
+    , inout float3 _diff
+    , inout float3 _spec
+)
+{
+    float NdL = max(dot(_input.N, _input.L), 0.0f);
+    float NdV = max(dot(_input.N, _input.V), 0.0001f);
+    float NdH = max(dot(_input.N, _input.H), 0.0f);
+    float HdV = max(dot(_input.H, _input.V), 0.0f);
+
+    float D = ndfGGX(NdH, _roughness);
+    float G = gaSchlickGGX(NdL, NdV, _roughness);
+    float3 F = fresnelSchlick(F0, HdV);
+
+    float3 BRDF = (D * G * F) / (4.0f * NdV * NdL + 0.0001f);
+    
+    float3 ks = F;
+    float3 kd = (1.0f - ks) * (1.0f - _metalic);
+
+    _diff += kd * NdL;
+    _spec += BRDF * NdL;
+    
+    return;
+}
+

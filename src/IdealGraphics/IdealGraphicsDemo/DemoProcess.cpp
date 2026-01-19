@@ -428,11 +428,13 @@ void DemoProcess::ReadScene(std::wstring _name)
 		IRenderer::TextuerData normalData;
 		IRenderer::TextuerData roughnessData;
 		IRenderer::TextuerData metalicData;
+		IRenderer::TextuerData AOData;
 
 		FILE_STREAM albedoStream;
 		FILE_STREAM normalStream;
 		FILE_STREAM roughnessStream;
 		FILE_STREAM metalicStream;
+		FILE_STREAM AOStream;
 
 		table textuerTable = LuaValueGetter<table>::Get(m_luaState, "Textures");
 
@@ -457,6 +459,7 @@ void DemoProcess::ReadScene(std::wstring _name)
 		TextuerDataGetter(normalData, "normal", normalStream);
 		TextuerDataGetter(roughnessData, "roughness", roughnessStream);
 		TextuerDataGetter(metalicData, "metalic", metalicStream);
+		TextuerDataGetter(AOData, "AO", AOStream);
 
 		IRenderer::MaterialData materialData;
 		materialData.m_color = { 0,0,0,1 };
@@ -464,6 +467,7 @@ void DemoProcess::ReadScene(std::wstring _name)
 		materialData.m_normal = &normalData;
 		materialData.m_roughness = &roughnessData;
 		materialData.m_metalic = &metalicData;
+		materialData.m_AO = &AOData;
 
 		IE_ASSERT(m_renderer->CreateMaterial(renderObject->m_material, materialData));
 
@@ -654,21 +658,53 @@ void DemoProcess::SetSkyBox()
 	DO_STREAM(m_luaState, s);
 	std::wstring vs = LuaValueGetter<std::wstring>::Get(m_luaState, "VertexShader");
 	std::wstring ps = LuaValueGetter<std::wstring>::Get(m_luaState, "PixelShader");
-	std::wstring textuer = LuaValueGetter<std::wstring>::Get(m_luaState, "Textuer");
+	std::wstring env = LuaValueGetter<std::wstring>::Get(m_luaState, "EnvTextuer");
+	std::wstring diffuse = LuaValueGetter<std::wstring>::Get(m_luaState, "DiffuseTextuer");
+	std::wstring specular = LuaValueGetter<std::wstring>::Get(m_luaState, "SpecularTextuer");
+	std::wstring brdf = LuaValueGetter<std::wstring>::Get(m_luaState, "BRDFTextuer");
 
 	// skybox textuer data
-	FILE_STREAM ts;
-	m_fms.OpenFile(textuer, ts);
-	if (true == ts.empty())
-	{
-		return;
-	}
-	IRenderer::TextuerData tdata{ textuer , &ts };
+	IRenderer::TextuerData datas[4];
+
+	IRenderer::SkyBoxTextuer skyTextuer;
+	skyTextuer.m_env = &datas[0];
+	skyTextuer.m_diffuse = &datas[1];
+	skyTextuer.m_specular = &datas[2];
+	skyTextuer.m_BRDF = &datas[3];
+
+	FILE_STREAM envTextuerStream;
+	FILE_STREAM diffuseTextuerStream;
+	FILE_STREAM specularTextuerStream;
+	FILE_STREAM brdfTextuerStream;
+
+	auto LoadTextuer = [&](IRenderer::TextuerData* _output, FILE_STREAM& _stream, std::wstring& _name)
+		{
+			if (true == _name.empty())
+			{
+				_output->m_name = _name;
+				_output->m_data = nullptr;
+			}
+
+			m_fms.OpenFile(_name, _stream);
+			if (true == _stream.empty())
+			{
+				_output->m_name = _name;
+				_output->m_data = nullptr;
+				return;
+			}
+			_output->m_name = _name;
+			_output->m_data = &_stream;
+		};
+
+	LoadTextuer(skyTextuer.m_env, envTextuerStream, env);
+	LoadTextuer(skyTextuer.m_diffuse, diffuseTextuerStream, diffuse);
+	LoadTextuer(skyTextuer.m_specular, specularTextuerStream, specular);
+	LoadTextuer(skyTextuer.m_BRDF, brdfTextuerStream, brdf);
 
 	// create skybox render data
 	m_renderer->SetSkyVS(IRenderer::VERTEX_TYPE::VertexPU, vs);
 	m_renderer->SetSkyPS(ps);
-	m_renderer->SetSkyTextuer(&tdata);
+	m_renderer->SetSkyTextuer(&skyTextuer);
 }
 
 LRESULT CALLBACK DemoProcess::WndProc(

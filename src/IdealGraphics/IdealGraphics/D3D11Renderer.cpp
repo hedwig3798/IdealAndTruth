@@ -641,7 +641,7 @@ IE D3D11Renderer::CreateInputLayout(VERTEX_TYPE _type, const std::vector<unsigne
 	case IRenderer::VERTEX_TYPE::VertexPNTU:
 	{
 		decs = VertexPNTU::m_IADesc;
-		eleNum = 4;
+		eleNum = 5;
 		break;
 	}
 	// 타입이 없으면 그냥 슈퍼 타입 지정
@@ -691,7 +691,7 @@ IE D3D11Renderer::CreateSkySphereObject()
 	std::vector<UINT> index;
 
 	// 스카이박스 정점, 인덱스 버퍼 생성
-	CreateSphere(vertex, index);
+	CreateSphere(vertex, index, false);
 
 	if (vertex.empty()
 		|| index.empty())
@@ -1104,7 +1104,7 @@ IE D3D11Renderer::SetSkyVS(VERTEX_TYPE _type, const std::wstring& _vs)
 {
 	IE iok;
 	iok = CreateVertexShader(_type, _vs);
-	if (IE::I_OK !=iok)
+	if (IE::I_OK != iok)
 	{
 		return iok;
 	}
@@ -1129,16 +1129,65 @@ IE D3D11Renderer::SetSkyPS(const std::wstring& _ps)
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::SetSkyTextuer(const TextuerData* _textuer)
+IE D3D11Renderer::SetSkyTextuer(const SkyBoxTextuer* _textuer)
 {
 	IE iok;
-	iok = CreateTexture(_textuer);
+
+	auto CreateSkyTextuer = [&](TextuerData* _data, ComPtr<ID3D11ShaderResourceView>& _output) -> IE
+		{
+			IE iok = IE::I_OK;
+			iok = CreateTexture(_data);
+			if (IE::I_OK != iok)
+			{
+				return iok;
+			}
+			_output = m_textuerMap[_data->m_name];
+			return iok;
+		};
+
+	iok = CreateSkyTextuer(_textuer->m_env, m_envTextuer);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+	iok = CreateSkyTextuer(_textuer->m_diffuse, m_irradianceMap);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+	iok = CreateSkyTextuer(_textuer->m_specular, m_specularMap);
 	if (IE::I_OK != iok)
 	{
 		return iok;
 	}
 
-	m_skyTextuer = m_textuerMap[_textuer->m_name];
+	ComPtr<ID3D11Resource> resource;
+	DirectX::CreateDDSTextureFromMemoryEx(
+		m_device.Get()
+		, reinterpret_cast<const uint8_t*>(_textuer->m_diffuse->m_data->data())
+		, _textuer->m_diffuse->m_data->size()
+		, 0
+		, D3D11_USAGE_DEFAULT
+		, D3D11_BIND_SHADER_RESOURCE
+		, 0
+		, 0
+		, DirectX::DDS_LOADER_DEFAULT
+		, resource.GetAddressOf()
+		, nullptr
+	);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	m_device->CreateShaderResourceView(resource.Get(), &srvDesc, m_brdfLUT.GetAddressOf());
+
+	// iok = CreateSkyTextuer(_textuer->m_BRDF, m_brdfLUT);
+	// if (IE::I_OK != iok)
+	// {
+	// 	return iok;
+	// }
 
 	return IE::I_OK;
 }
@@ -1156,7 +1205,7 @@ IE D3D11Renderer::CreateDefaultTextuer(const Vector3& _diffuse, const Vector3& _
 	texDesc.Height = 1;
 	texDesc.MipLevels = 1;
 	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.Usage = D3D11_USAGE_DEFAULT;
 	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -1173,7 +1222,7 @@ IE D3D11Renderer::CreateDefaultTextuer(const Vector3& _diffuse, const Vector3& _
 			HRESULT hr = S_OK;
 
 			// float 색을 0 ~ 255 사이로 스케일링
-			unsigned char rawColor[4] = 
+			unsigned char rawColor[4] =
 			{
 				static_cast<unsigned char>(_color.x * 255.0f),
 				static_cast<unsigned char>(_color.y * 255.0f),
@@ -1342,7 +1391,7 @@ IE D3D11Renderer::ImportAnimation()
 	return IE::I_OK;
 }
 
-IE D3D11Renderer::CreateTexture(const TextuerData* _textuerData)
+IE D3D11Renderer::CreateTexture(const TextuerData* _textuerData, bool _force2D)
 {
 	HRESULT hr = S_OK;
 
@@ -1360,32 +1409,20 @@ IE D3D11Renderer::CreateTexture(const TextuerData* _textuerData)
 	ComPtr<ID3D11ShaderResourceView> albedoSrv;
 	if (L"dds" == format)
 	{
-		hr = DirectX::CreateDDSTextureFromMemoryEx(
+		hr = DirectX::CreateDDSTextureFromMemory(
 			m_device.Get()
 			, reinterpret_cast<const uint8_t*>(_textuerData->m_data->data())
 			, _textuerData->m_data->size()
-			, 0
-			, D3D11_USAGE_DEFAULT
-			, D3D11_BIND_SHADER_RESOURCE
-			, 0
-			, 0
-			, DirectX::DDS_LOADER_FORCE_SRGB
 			, nullptr
 			, albedoSrv.GetAddressOf()
 		);
 	}
 	else if (L"png" == format)
 	{
-		hr = DirectX::CreateWICTextureFromMemoryEx(
+		hr = DirectX::CreateWICTextureFromMemory(
 			m_device.Get()
 			, reinterpret_cast<const uint8_t*>(_textuerData->m_data->data())
 			, _textuerData->m_data->size()
-			, 0
-			, D3D11_USAGE_DEFAULT
-			, D3D11_BIND_SHADER_RESOURCE
-			, 0
-			, 0
-			, DirectX::WIC_LOADER_FORCE_SRGB
 			, nullptr
 			, albedoSrv.GetAddressOf()
 		);
@@ -1465,10 +1502,17 @@ IE D3D11Renderer::CreateMaterial(const std::wstring _name, const MaterialData& _
 		return iok;
 	}
 
+	iok = TextuerGen(_material.m_AO, m_defaultDiffuse);
+	if (IE::I_OK != iok)
+	{
+		return iok;
+	}
+
 	m_materialMap[_name].m_albedo = m_textuerMap[_material.m_albedo->m_name];
 	m_materialMap[_name].m_normal = m_textuerMap[_material.m_normal->m_name];
 	m_materialMap[_name].m_roughness = m_textuerMap[_material.m_roughness->m_name];
 	m_materialMap[_name].m_metalic = m_textuerMap[_material.m_metalic->m_name];
+	m_materialMap[_name].m_AO = m_textuerMap[_material.m_AO->m_name];
 
 	return IE::I_OK;
 }
@@ -1527,7 +1571,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 			, sizeof(DirectionLightBufferData) * m_dirctionLightVector.size()
 		);
 
-		m_deviceContext->PSSetShaderResources(4, 1, m_dirctionLightBuffer.m_srv.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(5, 1, m_dirctionLightBuffer.m_srv.GetAddressOf());
 	}
 
 	if (true == m_pointLightBuffer.isDirty)
@@ -1538,7 +1582,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 			, m_pointLightVector.data()
 			, sizeof(DirectionLightBufferData) * m_pointLightVector.size()
 		);
-		m_deviceContext->PSSetShaderResources(5, 1, m_pointLightBuffer.m_srv.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(6, 1, m_pointLightBuffer.m_srv.GetAddressOf());
 	}
 
 	if (true == m_spotLightBuffer.isDirty)
@@ -1549,7 +1593,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 			, m_spotLightVector.data()
 			, sizeof(DirectionLightBufferData) * m_spotLightVector.size()
 		);
-		m_deviceContext->PSSetShaderResources(6, 1, m_spotLightBuffer.m_srv.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(7, 1, m_spotLightBuffer.m_srv.GetAddressOf());
 	}
 
 	// 빛의 총 갯수가 바뀌면 새로 바인딩
@@ -1577,12 +1621,15 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 		&& nullptr != m_skyRenderSet.m_vb
 		&& nullptr != m_skyRenderSet.m_ps
 		&& nullptr != m_skyRenderSet.m_ib
-		&& nullptr != m_skyTextuer
+		&& nullptr != m_envTextuer
 		&& 0 < m_skyIndexSize)
 	{
 		BindVertexShaderAndInputLayout(m_skyRenderSet.m_vs, m_skyRenderSet.m_ia);
 		BindPixelShader(m_skyRenderSet.m_ps);
-		m_deviceContext->PSSetShaderResources(7, 1, m_skyTextuer.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(8, 1, m_envTextuer.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(9, 1, m_irradianceMap.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(10, 1, m_specularMap.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(11, 1, m_brdfLUT.GetAddressOf());
 		BindVertexBuffer(m_skyRenderSet.m_vb, sizeof(VertexPU));
 		BindIndexBuffer(m_skyRenderSet.m_ib);
 		m_deviceContext->DrawIndexed(m_skyIndexSize, 0, 0);
@@ -1631,6 +1678,7 @@ IE D3D11Renderer::Draw(std::function<void()> ImguiRender)
 			m_deviceContext->PSSetShaderResources(1, 1, mat.m_normal.GetAddressOf());
 			m_deviceContext->PSSetShaderResources(2, 1, mat.m_roughness.GetAddressOf());
 			m_deviceContext->PSSetShaderResources(3, 1, mat.m_metalic.GetAddressOf());
+			m_deviceContext->PSSetShaderResources(4, 1, mat.m_AO.GetAddressOf());
 
 			auto vb = m_vBuffer.find(itr->m_mesh);
 			if (m_vBuffer.end() == vb)

@@ -16,6 +16,9 @@
     <Filter Include="Light">
       <UniqueIdentifier>{811a9dc0-052f-4c18-b0c0-44ee58cd8297}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IBL">
+      <UniqueIdentifier>{5096230e-9305-4354-b8c5-1e49d2e4eae4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DefaultVS.hlsl">
@@ -39,6 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Light.hlsli">
+      <Filter>Light</Filter>
+    </None>
+    <None Include="PBRHelper.hlsli">
       <Filter>Light</Filter>
     </None>
   </ItemGroup>

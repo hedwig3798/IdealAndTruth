@@ -26,6 +26,7 @@ struct VertexPUTN
 	Vector3 m_position;
 	Vector3 m_normal;
 	Vector3 m_tangent;
+	Vector3 m_binormal;
 	Vector2 m_uv;
 };
 

@@ -40,7 +40,7 @@ RendererInitializeState =
     {
         refreshRateNumerator = 60,
         refreshRateDenominator = 1,
-        format = DXGI_FORMAT["DXGI_FORMAT_R8G8B8A8_UNORM_SRGB"],
+        format = DXGI_FORMAT["DXGI_FORMAT_R8G8B8A8_UNORM"],
         scanlineOrdering = DXGI_MODE_SCANLINE_ORDER["DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED"],
         scaling = DXGI_MODE_SCANLINE_ORDER["DXGI_MODE_SCALING_UNSPECIFIED"],
         sampleCount = 1,
@@ -54,7 +54,7 @@ RendererInitializeState =
     {
         fillMode = D3D11_FILL_MODE["D3D11_FILL_SOLID"],
         cullMode = D3D11_CULL_MODE["D3D11_CULL_BACK"],
-        isFrontCCW = true,
+        isFrontCCW = false,
         isDepthClip = true,
     },
 

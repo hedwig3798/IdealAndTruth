@@ -73,6 +73,7 @@ struct VertexPNTU
 	Vector3 m_position;
 	Vector3 m_normal;
 	Vector3 m_tangent;
+	Vector3 m_binormal;
 	Vector2 m_uv;
-	static D3D11_INPUT_ELEMENT_DESC m_IADesc[4];
+	static D3D11_INPUT_ELEMENT_DESC m_IADesc[5];
 };
