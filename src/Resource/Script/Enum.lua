@@ -1,6 +1,0 @@
-LIGHT_TYPE =
-{
-    DIRECTION = 0,
-    POINT = 1,
-    SPOTLIGHT = 2,
-}
