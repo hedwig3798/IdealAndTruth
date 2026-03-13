@@ -1,0 +1,81 @@
+THIRD-PARTY-NOTICES
+이 소프트웨어는 아래의 외부 라이브러리를 사용하며, 각 라이브러리의 라이선스 규정을 준수합니다. [cite: 1]
+
+-------------------------------------------------------------------------
+1. DirectXTK (DirectX Tool Kit) [cite: 1]
+URL: https://github.com/microsoft/DirectXTK
+License: MIT
+
+Copyright (c) Microsoft Corporation. [cite: 1]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy [cite: 2]
+of this software and associated documentation files (the "Software"), to deal [cite: 2]
+in the Software without restriction, including without limitation the rights [cite: 2]
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell [cite: 2]
+copies of the Software, and to permit persons to whom the Software is [cite: 2]
+furnished to do so, subject to the following conditions: [cite: 2]
+
+The above copyright notice and this permission notice shall be included in all [cite: 2]
+copies or substantial portions of the Software. [cite: 2]
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR [cite: 3]
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, [cite: 3]
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. [cite: 3]
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,  [cite: 4]
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR  [cite: 4]
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR  [cite: 4]
+THE USE OR OTHER DEALINGS IN THE SOFTWARE. [cite: 4]
+
+-------------------------------------------------------------------------
+2. DirectXTex (DirectX Texture Library) [cite: 5]
+URL: https://github.com/microsoft/DirectXTex
+License: MIT
+
+Copyright (c) Microsoft Corporation. [cite: 5]
+(Licensed under the same MIT License as DirectXTK above.) [cite: 5, 6, 7]
+
+-------------------------------------------------------------------------
+3. TLogger [cite: 8]
+URL: https://github.com/hedwig3798/TLogger
+License: MIT
+
+Copyright (c) 2026 hedwig3798 [cite: 11]
+(Licensed under the same MIT License as DirectXTK above.) [cite: 11, 12, 13]
+
+- Dependency: {fmt}
+  Copyright (c) 2012 - present, Victor Zverovich [cite: 8]
+  (Licensed under the same MIT License as DirectXTK above.) [cite: 8, 9, 10]
+
+-------------------------------------------------------------------------
+4. FileManager [cite: 11]
+URL: https://github.com/hedwig3798/FileManager
+License: MIT
+
+Copyright (c) 2026 hedwig3798 [cite: 11]
+(Licensed under the same MIT License as DirectXTK above.) [cite: 11, 12, 13]
+
+- Dependency: OpenSSL
+  URL: https://www.openssl.org/
+  License: Apache License 2.0
+  Copyright (c) 1998-2026 The OpenSSL Project. All rights reserved.
+
+- Dependency: lz4
+  URL: https://github.com/lz4/lz4
+  License: BSD 2-Clause License
+  Copyright (c) 2011-2026, Yann Collet. All rights reserved.
+
+-------------------------------------------------------------------------
+5. Lua
+URL: https://www.lua.org/
+License: MIT
+
+Copyright (c) 1994–2026 Lua.org, PUC-Rio.
+(Licensed under the same MIT License as DirectXTK above.)
+
+-------------------------------------------------------------------------
+6. Dear ImGui
+URL: https://github.com/ocornut/imgui
+License: MIT
+
+Copyright (c) 2014-2026 Omar Cornut
+(Licensed under the same MIT License as DirectXTK above.)

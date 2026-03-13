@@ -53,3 +53,15 @@ cmake .. ^
     -G "Visual Studio 17 2022" ^
     -A x64
 ```
+
+---
+
+### 📄 시용한 외부 라이브러리
+외부 라이브러리에 대한 자세한 라이센스는 `THIRD-PARTY-NOTICES.txt`를 참고해주세요
+- [FMS](https://github.com/hedwig3798/FileManager)
+- [TLogger](https://github.com/hedwig3798/TLogger)
+- [DirectXTK](https://github.com/microsoft/DirectXTK)
+- [DirectXTex](https://github.com/microsoft/DirectXTex)
+- [lua](https://github.com/lua/lua)
+- [imgui](https://github.com/ocornut/imgui)
+  
