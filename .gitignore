@@ -45,5 +45,8 @@ x86/
 Thumbs.db
 
 # too big
-Resource/
 ExternLib/
+Resource/Texture/skybox/daywall/BakerSampleEnvHDR.dds
+Resource/Texture/skybox/daywall/BakerSampleEnvMDR.dds
+Resource/Texture/skybox/daywall/BakerSampleSpecularHDR.dds
+Resource/Texture/skybox/daywall/BakerSampleSpecularMDR.dds
