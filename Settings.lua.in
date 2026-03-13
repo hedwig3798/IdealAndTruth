@@ -1,4 +1,3 @@
 
 -- oeriginal resource path
-ResourcePath = @RESOURCE_ROOT_PATH@
-
+ResourcePath = [[@RESOURCE_ROOT_PATH@]]

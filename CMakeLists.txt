@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
 project(IAT)
 
+if(BIN_OUTPUT_DIR)
+else()
+    set(BIN_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${BIN_OUTPUT_DIR}/$<CONFIG>")
+
+
+
 # 빌드 환경 설정
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/dist" CACHE PATH "..." FORCE)
@@ -15,6 +25,16 @@ endif()
 if(HAS_D3D11)
     message(STATUS "D3D11 : Enabled")
     add_subdirectory(src/IdealGraphicsD3D11)
+    add_subdirectory(src/IdealGraphicsD3D11Demo)
+
+    install(
+    TARGETS 
+        IdealGraphicsD3D11 
+        IdealGraphicsD3D11Demo
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
 else()
     message(STATUS "D3D11 : Pass")
 endif()
@@ -26,21 +46,5 @@ configure_file(
     @ONLY        
 )
 
-install(
-	TARGETS IdealGraphicsD3D11
-    RUNTIME DESTINATION bin    # .exe, .dll
-    LIBRARY DESTINATION lib    # 리눅스 .so 
-    ARCHIVE DESTINATION lib    # .lib
-)
-
-# 공통 파일 설치 (루트 경로에서 바로 참조)
-install(
-    FILES 
-    "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
-    "${CMAKE_CURRENT_SOURCE_DIR}/THIRD-PARTY-NOTICES.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/Settings.lua"
-    DESTINATION .
-)
-
 # 시작 프로젝트 (나중에 데모로 수정할 것)
-# set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT IAT)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT IdealGraphicsD3D11Demo)
